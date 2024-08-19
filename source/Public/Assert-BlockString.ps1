@@ -50,6 +50,7 @@
 function Assert-BlockString # Should-BeBlockString
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param (
         [Parameter(Position = 1, ValueFromPipeline = $true)]
         $Actual,
@@ -79,7 +80,8 @@ function Assert-BlockString # Should-BeBlockString
 
     $stringsAreEqual = $isStringType -and (-join $Actual) -eq (-join $Expected)
 
-    if (-not $stringsAreEqual) {
+    if (-not $stringsAreEqual)
+    {
         if (-not $isStringType)
         {
             $message = "Expected to actual value to be of type string or string[], but it was not."
