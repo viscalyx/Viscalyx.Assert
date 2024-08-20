@@ -44,49 +44,60 @@ AfterAll {
 
 Describe 'Assert-BlockString' {
     It 'Should pass when Actual and Expected are equal strings' {
-        $Actual = 'Test string'
-        $Expected = 'Test string'
-        { Assert-BlockString -Actual $Actual -Expected $Expected } | Should -Not -Throw
+        $mockActual = 'Test string'
+        $mockExpected = 'Test string'
+
+        { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Not -Throw
     }
 
     It 'Should throw when Actual and Expected are different strings' {
-        $Actual = 'Test string'
-        $Expected = 'Different string'
-        { Assert-BlockString -Actual $Actual -Expected $Expected } | Should -Throw
+        $mockActual = 'Test string'
+        $mockExpected = 'Different string'
+
+        { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Throw
     }
 
     It 'Should throw when Actual is not a string' {
-        $Actual = 12345
-        $Expected = 'Test string'
-        { Assert-BlockString -Actual $Actual -Expected $Expected } | Should -Throw
+        $mockActual = 12345
+        $mockExpected = 'Test string'
+
+        { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Throw
     }
 
     It 'Should throw when Actual is string array' {
-        $Actual = @('1','2')
-        $Expected = 'Test string'
-        { Assert-BlockString -Actual $Actual -Expected $Expected } | Should -Throw
+        $mockActual = @('1','2')
+        $mockExpected = 'Test string'
+
+        { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Throw
     }
 
     It 'Should include Because message in the error' {
-        $Actual = 'Test string'
-        $Expected = 'Different string'
+        $mockActual = 'Test string'
+        $mockExpected = 'Different string'
         $Because = 'this is a test'
-        { Assert-BlockString -Actual $Actual -Expected $Expected -Because $Because } | Should -Throw -ExpectedMessage '*because this is a test*'
+
+        {
+            Assert-BlockString -Actual $mockActual -Expected $mockExpected -Because $Because
+        } | Should -Throw -ExpectedMessage '*because this is a test*'
     }
 
     It 'Should handle pipeline input' {
-        $Expected = 'Test string'
+        $mockExpected = 'Test string'
+
         $scriptBlock = {
-            'Test string' | Assert-BlockString -Expected $Expected
+            'Test string' | Assert-BlockString -Expected $mockExpected
         }
+
         { & $scriptBlock } | Should -Not -Throw
     }
 
     It 'Should be able to be called using its alias' {
-        $Expected = 'Test string'
+        $mockExpected = 'Test string'
+
         $scriptBlock = {
-            'Test string' | Should-BeBlockString -Expected $Expected
+            'Test string' | Should-BeBlockString -Expected $mockExpected
         }
+
         { & $scriptBlock } | Should -Not -Throw
     }
 }
