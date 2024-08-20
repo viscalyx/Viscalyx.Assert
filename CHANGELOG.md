@@ -9,3 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Asserts:
   - `Assert-BlockString` (alias `Should-BeBlockString`)
+
+### Fixed
+
+- Updated README.md
