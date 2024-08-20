@@ -81,4 +81,12 @@ Describe 'Assert-BlockString' {
         }
         { & $scriptBlock } | Should -Not -Throw
     }
+
+    It 'Should be able to be called using its alias' {
+        $Expected = 'Test string'
+        $scriptBlock = {
+            'Test string' | Should-BeBlockString -Expected $Expected
+        }
+        { & $scriptBlock } | Should -Not -Throw
+    }
 }
