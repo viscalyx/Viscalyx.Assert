@@ -57,7 +57,6 @@ function Assert-BlockString
         $Actual,
 
         [Parameter(Position = 0, Mandatory = $true)]
-        [System.String[]]
         $Expected,
 
         [Parameter()]
@@ -77,19 +76,25 @@ function Assert-BlockString
     }
 
     # Verify if $Actual is a string or string array
-    $isStringType = $Actual -is [System.String] -or ($Actual -is [System.Array] -and $Actual[0] -is [System.String])
+    $isActualStringType = $Actual -is [System.String] -or ($Actual -is [System.Array] -and ($Actual.Count -eq 0 -or ($Actual.Count -gt 0 -and $Actual[0] -is [System.String])))
 
-    $stringsAreEqual = $isStringType -and (-join $Actual) -ceq (-join $Expected)
+    $isExpectedStringType = $Expected -is [System.String] -or ($Expected -is [System.Array] -and ($Expected.Count -eq 0 -or ($Expected.Count -gt 0 -and $Expected[0] -is [System.String])))
+
+    $stringsAreEqual = $isActualStringType -and $isExpectedStringType -and (-join $Actual) -ceq (-join $Expected)
 
     if (-not $stringsAreEqual)
     {
-        if (-not $isStringType)
+        if (-not $isActualStringType)
         {
-            $message = 'Expected to actual value to be of type string or string[], but it was not.'
+            $message = 'The Actual value must be of type string or string[], but it was not.'
+        }
+        elseif (-not $isExpectedStringType)
+        {
+            $message = 'The Expected value must be of type string or string[], but it was not.'
         }
         else
         {
-            $message = 'Expect the strings to be equal'
+            $message = 'Expected the strings to be equal'
 
             if ($Because)
             {

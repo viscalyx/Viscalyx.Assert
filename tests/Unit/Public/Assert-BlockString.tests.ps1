@@ -91,6 +91,46 @@ Describe 'Assert-BlockString' {
         { & $scriptBlock } | Should -Not -Throw
     }
 
+    It 'Should be able to pass empty collection as Expected' {
+        $mockExpected = 'Test string'
+
+        $scriptBlock = {
+            '' | Assert-BlockString -Expected @()
+        }
+
+        { & $scriptBlock } | Should -Not -Throw
+    }
+
+    It 'Should be able to pass empty string as Expected' {
+        $mockExpected = 'Test string'
+
+        $scriptBlock = {
+            '' | Assert-BlockString -Expected ''
+        }
+
+        { & $scriptBlock } | Should -Not -Throw
+    }
+
+    It 'Should be able to pass empty collection as Actual' {
+        $mockExpected = 'Test string'
+
+        $scriptBlock = {
+            Assert-BlockString -Actual @() -Expected @()
+        }
+
+        { & $scriptBlock } | Should -Not -Throw
+    }
+
+    It 'Should be able to pass empty string as Actual' {
+        $mockExpected = 'Test string'
+
+        $scriptBlock = {
+            Assert-BlockString -Actual '' -Expected ''
+        }
+
+        { & $scriptBlock } | Should -Not -Throw
+    }
+
     It 'Should be able to be called using its alias' {
         $mockExpected = 'Test string'
 
@@ -99,5 +139,29 @@ Describe 'Assert-BlockString' {
         }
 
         { & $scriptBlock } | Should -Not -Throw
+    }
+
+    It 'Should throw the correct error message when Actual is not a string' {
+        $mockExpected = 'Test string'
+
+        $scriptBlock = {
+            ([Int32] -1) | Should-BeBlockString -Expected $mockExpected
+        }
+
+        { & $scriptBlock } | Should -Throw -ExpectedMessage 'The Actual value must be of type string or string`[`], but it was not.'
+    }
+
+    It 'Should throw the correct error message when Expected is not a string' {
+        $mockActual = 'Test string'
+
+        $scriptBlock = {
+            'Test string' | Should-BeBlockString -Expected ([Int32] -1)
+        }
+
+        { & $scriptBlock } | Should-Throw -ExceptionMessage 'The Expected value must be of type string or string`[`], but it was not.'
+    }
+
+    It 'Should throw the correct error message when Expected is not a string' {
+        { throw 'int[]' } | Should-Throw -ExceptionMessage 'string`[`]'
     }
 }
