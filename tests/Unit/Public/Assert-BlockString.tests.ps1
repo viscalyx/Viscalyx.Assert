@@ -160,8 +160,4 @@ Describe 'Assert-BlockString' {
 
         { & $scriptBlock } | Should-Throw -ExceptionMessage 'The Expected value must be of type string or string`[`], but it was not.'
     }
-
-    It 'Should throw the correct error message when Expected is not a string' {
-        { throw 'int[]' } | Should-Throw -ExceptionMessage 'string`[`]'
-    }
 }
