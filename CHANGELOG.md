@@ -13,3 +13,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Updated README.md
+- `Assert-BlockString`
+  - Allow it to pass string array and single string to `Expected` parameter.
