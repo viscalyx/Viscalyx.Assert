@@ -21,7 +21,7 @@
     .PARAMETER Because
         An optional reason or explanation for the assertion.
 
-    .PARAMETER DifferenceAnsi
+    .PARAMETER Highlight
         An optional ANSI color code to highlight the difference between the expected
         and actual strings. The default value is '31m' (red text).
 
@@ -65,7 +65,7 @@ function Assert-BlockString
 
         [Parameter()]
         [System.String]
-        $DifferenceAnsi = '31m'
+        $Highlight = '31m'
     )
 
     $hasPipelineInput = $MyInvocation.ExpectingInput
@@ -101,10 +101,10 @@ function Assert-BlockString
                 $message += " because $Because"
             }
 
-            $message += ", but they were not. Difference is highlighted:`r`n"
+            $message += ", but they were not. Difference is highlighted:`r`n "
 
-            $message += Out-Diff -Reference $Expected -Difference $Actual -ReferenceLabel 'Expected' -DifferenceLabel 'Actual' -DifferenceAnsi:$DifferenceAnsi -PassThru |
-                ForEach-Object { "`e[0m$_`r`n" }
+            $message += Out-Difference -Reference $Expected -Difference $Actual -ReferenceLabel 'Expected:' -DifferenceLabel 'But was:' -HighlightStart:$Highlight |
+                ForEach-Object -Process { "`e[0m$_`r`n" }
         }
 
         throw [Pester.Factory]::CreateShouldErrorRecord($Message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
