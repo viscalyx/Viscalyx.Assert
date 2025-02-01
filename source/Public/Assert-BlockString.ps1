@@ -1,21 +1,21 @@
 <#
     .SYNOPSIS
-        Asserts that a string, here-string or array of strings matches the expected
-        string, here-string or array of strings.
+        Asserts that a string, here-string, or array of strings matches the expected
+        value.
 
     .DESCRIPTION
-        The `Assert-BlockString` command compares a string, here-string or array
-        of strings with the expected string, here-string or array of strings and
-        throws an error that includes the hex output if they are not equal. The
-        comparison is case sensitive. It is commonly used in unit testing scenarios
-        to verify the correctness of string outputs on byte level.
+        The `Assert-BlockString` command compares a string, here-string, or array of
+        strings against an expected string, here-string, or array of strings. If
+        they are not identical, it throws an error that includes the hex output.
+        The comparison is case-sensitive. It is commonly used in unit testing
+        scenarios to verify the correctness of string outputs at the byte level.
 
     .PARAMETER Actual
-        The actual string, here-string or array of strings to be compared with the
-        expected value. This parameter accepts pipeline input.
+        The actual string, here-string, or array of strings to be compared with
+        the expected value. This parameter accepts pipeline input.
 
     .PARAMETER Expected
-        The expected string, here-string or array of strings that the actual value
+        The expected string, here-string, or array of strings that the actual value
         should match.
 
     .PARAMETER Because
@@ -35,13 +35,15 @@
     .EXAMPLE
         PS> 'hello', 'world' | Assert-BlockString -Expected 'Hello', 'World'
 
-        This example demonstrates the usage of pipeline input. The block of strings
-        'Hello' and 'World' is piped to `Assert-BlockString` and compared with the
-        expected strings 'Hello' and 'World'. If the assertion fails, an error is
-        thrown.
+        This example demonstrates the usage of pipeline input. A string array containing
+        'hello' and 'world' are piped to `Assert-BlockString` and compared with the
+        expected string array containing 'Hello' and 'World'. If the assertion fails,
+        an error is thrown.
 
     .NOTES
-        TODO: Is it possible to rename command to `Should-BeBlockString`. Pester handles Should verb with, not sure it possible to resolve here:
+        TODO: Is it possible to rename the command to `Should-BeBlockString`? Pester
+        handles commands with the `Should` verb; however, it is unclear if this issue
+        can be resolved here. See:
         https://github.com/pester/Pester/commit/c8bc9679bed19c8fbc4229caa01dd083f2d03d4f#diff-b7592dd925696de2521c9b12b966d65519d502045462f002c343caa7c0986936
         and
         https://github.com/pester/Pester/commit/c8bc9679bed19c8fbc4229caa01dd083f2d03d4f#diff-460f64eafc16facefbed201eb00fb151c75eadf7cc58a504a01527015fb1c7cdR17
