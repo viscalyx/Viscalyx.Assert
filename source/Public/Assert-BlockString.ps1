@@ -88,22 +88,22 @@ function Assert-BlockString
     {
         if (-not $isActualStringType)
         {
-            $message = 'The Actual value must be of type string or string[], but it was not.'
+            $message = $script:localizedData.Assert_BlockString_ActualInvalid
         }
         elseif (-not $isExpectedStringType)
         {
-            $message = 'The Expected value must be of type string or string[], but it was not.'
+            $message = $script:localizedData.Assert_BlockString_ExpectedInvalid
         }
         else
         {
-            $message = 'Expected the strings to be equal'
+            $message = $script:localizedData.Assert_BlockString_StringsNotEqual
 
             if ($Because)
             {
-                $message += " because $Because"
+                $message += " {0} $Because" -f $script:localizedData.Assert_BlockString_StringsNotEqual_Because
             }
 
-            $message += ", but they were not. Difference is highlighted:`r`n "
+            $message += "{0}`r`n " -f $script:localizedData.Assert_BlockString_Difference
 
             $message += Out-Difference -Reference $Expected -Difference $Actual -ReferenceLabel 'Expected:' -DifferenceLabel 'But was:' -HighlightStart:$Highlight |
                 ForEach-Object -Process { "`e[0m$_`r`n" }
