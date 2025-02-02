@@ -126,7 +126,6 @@ DscTest:
       Filter:
         ExcludeTag:
           - "Common Tests - New Error-Level Script Analyzer Rules"
-          - "Common Tests - Validate Localization" # TODO: Remove this when tests have been converted to v6
       Output:
         Verbosity: Detailed
         CIFormat: Auto
