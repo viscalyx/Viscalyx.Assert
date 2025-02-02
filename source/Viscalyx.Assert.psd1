@@ -6,7 +6,7 @@
     ModuleVersion        = '0.0.1'
 
     # ID used to uniquely identify this module
-    GUID                 = 'aba638ad-a584-4234-8eaa-48691b21be2f'
+    GUID                 = '40fd578c-f818-46bc-84d3-8de933d0cf7d'
 
     # Author of this module
     Author               = 'Viscalyx' # cSpell: ignore Viscalyx
