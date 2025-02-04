@@ -18,4 +18,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Update to use `Out-Difference`.
   - Update comment-based help.
   - Added localization support.
+  - Added parameter `NoHexOutput`.
 - Updated module manifest GUID.

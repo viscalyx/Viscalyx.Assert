@@ -67,7 +67,11 @@ function Assert-BlockString
 
         [Parameter()]
         [System.String]
-        $Highlight = '31m'
+        $Highlight = '31m',
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $NoHexOutput
     )
 
     $hasPipelineInput = $MyInvocation.ExpectingInput
@@ -105,7 +109,7 @@ function Assert-BlockString
 
             $message += "{0}`r`n " -f $script:localizedData.Assert_BlockString_Difference
 
-            $message += Out-Difference -Reference $Expected -Difference $Actual -ReferenceLabel 'Expected:' -DifferenceLabel 'But was:' -HighlightStart:$Highlight |
+            $message += Out-Difference -Reference $Expected -Difference $Actual -ReferenceLabel 'Expected:' -DifferenceLabel 'But was:' -HighlightStart:$Highlight -NoHexOutput:$NoHexOutput.IsPresent |
                 ForEach-Object -Process { "`e[0m$_`r`n" }
         }
 
