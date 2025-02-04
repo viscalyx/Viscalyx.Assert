@@ -92,8 +92,6 @@ Describe 'Assert-BlockString' {
     }
 
     It 'Should be able to pass empty collection as Expected' {
-        $mockExpected = 'Test string'
-
         $scriptBlock = {
             '' | Assert-BlockString -Expected @()
         }
@@ -102,8 +100,6 @@ Describe 'Assert-BlockString' {
     }
 
     It 'Should be able to pass empty string as Expected' {
-        $mockExpected = 'Test string'
-
         $scriptBlock = {
             '' | Assert-BlockString -Expected ''
         }
@@ -112,8 +108,6 @@ Describe 'Assert-BlockString' {
     }
 
     It 'Should be able to pass empty collection as Actual' {
-        $mockExpected = 'Test string'
-
         $scriptBlock = {
             Assert-BlockString -Actual @() -Expected @()
         }
@@ -122,10 +116,18 @@ Describe 'Assert-BlockString' {
     }
 
     It 'Should be able to pass empty string as Actual' {
-        $mockExpected = 'Test string'
-
         $scriptBlock = {
             Assert-BlockString -Actual '' -Expected ''
+        }
+
+        { & $scriptBlock } | Should -Not -Throw
+    }
+
+    It 'Should not return any hex output' {
+        $mockLongString = 'A' * 70
+
+        $scriptBlock = {
+            Assert-BlockString -Actual $mockLongString -Expected $mockLongString -NoHexOutput
         }
 
         { & $scriptBlock } | Should -Not -Throw
