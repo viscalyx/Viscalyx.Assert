@@ -25,6 +25,9 @@
         An optional ANSI color code to highlight the difference between the expected
         and actual strings. The default value is '31m' (red text).
 
+    .PARAMETER NoHexOutput
+        Specifies whether to omit the hex columns and output only the character groups.
+
     .EXAMPLE
         PS> Assert-BlockString -Actual 'hello', 'world' -Expected 'Hello', 'World'
 
