@@ -61,7 +61,7 @@ function Assert-ObjectProperty
 {
     [Alias('Should-HaveProperty')]
     [CmdletBinding(DefaultParameterSetName = 'AssertProperty')]
-    [OutputType()]
+    [OutputType([System.Boolean])]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param
@@ -73,13 +73,16 @@ function Assert-ObjectProperty
 
         [Parameter(ParameterSetName = 'AssertProperty', Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
         [Parameter(ParameterSetName = 'AssertValue', Position = 2, Mandatory = $true, ValueFromPipeline = $true)]
+        [System.Object]
         $Actual,
 
         [Parameter(ParameterSetName = 'AssertValue', Position = 1, Mandatory = $true)]
         [AllowNull()]
+        [System.Object]
         $Value,
 
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [System.String]
         $Because
     )
