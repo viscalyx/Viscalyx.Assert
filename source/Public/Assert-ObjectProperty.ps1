@@ -134,7 +134,7 @@ function Assert-ObjectProperty
         # Use Get-Member as fallback for .NET objects
         else
         {
-            $member = $Actual | Get-Member -Name $Property -MemberType Properties, NoteProperty -ErrorAction SilentlyContinue
+            $member = $Actual | Get-Member -Name $Property -MemberType Property, NoteProperty, ScriptProperty -ErrorAction SilentlyContinue
             if ($null -ne $member)
             {
                 $hasProperty = $true
