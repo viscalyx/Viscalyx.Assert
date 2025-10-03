@@ -39,7 +39,7 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
         BeforeAll {
             # Create a mock service object with various methods
             $mockService = [PSCustomObject]@{
-                Name = 'TestService'
+                Name   = 'TestService'
                 Status = 'Running'
             }
 
@@ -91,7 +91,7 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
 
     Context 'When validating methods on system objects' {
         It 'Should validate that string objects have expected methods using Should-HaveMethod' {
-            $testString = "Hello World"
+            $testString = 'Hello World'
 
             # Validate common string methods
             $testString | Should-HaveMethod -Method 'ToString'
@@ -127,39 +127,47 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
     Context 'When validating methods on custom class instances' {
         BeforeAll {
             # Define a custom class for testing
-            class TestConfiguration {
+            class TestConfiguration
+            {
                 [string]$Name
                 [hashtable]$Settings
                 [string[]]$Tags
 
-                TestConfiguration([string]$name) {
+                TestConfiguration([string]$name)
+                {
                     $this.Name = $name
                     $this.Settings = @{}
                     $this.Tags = @()
                 }
 
-                [void] AddSetting([string]$key, [object]$value) {
+                [void] AddSetting([string]$key, [object]$value)
+                {
                     $this.Settings[$key] = $value
                 }
 
-                [object] GetSetting([string]$key) {
+                [object] GetSetting([string]$key)
+                {
                     return $this.Settings[$key]
                 }
 
-                [void] AddTag([string]$tag) {
+                [void] AddTag([string]$tag)
+                {
                     $this.Tags += $tag
                 }
 
-                [bool] HasTag([string]$tag) {
+                [bool] HasTag([string]$tag)
+                {
                     return $this.Tags -contains $tag
                 }
 
-                [void] Reset() {
+                [void] Reset()
+                {
                     $this.Settings.Clear()
                     $this.Tags = @()
                 }
 
-                [string] ToString() {
+                [string] ToString()
+                {
                     return "Configuration: $($this.Name)"
                 }
             }
@@ -199,7 +207,8 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
             $testConfiguration = [TestConfiguration]::new('TestConfig')
             $expectedMethods = @('AddSetting', 'GetSetting', 'AddTag', 'HasTag', 'Reset', 'ToString')
 
-            foreach ($method in $expectedMethods) {
+            foreach ($method in $expectedMethods)
+            {
                 $testConfiguration | Should-HaveMethod -Method $method
             }
         }
@@ -215,7 +224,8 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
             )
 
             # Add methods to each service object
-            foreach ($service in $serviceCollection) {
+            foreach ($service in $serviceCollection)
+            {
                 $service | Add-Member -MemberType ScriptMethod -Name 'GetInfo' -Value {
                     return "$($this.Name) ($($this.Type))"
                 }
@@ -228,13 +238,15 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
         }
 
         It 'Should validate that each service in collection has GetInfo method using Should-HaveMethod' {
-            foreach ($service in $serviceCollection) {
+            foreach ($service in $serviceCollection)
+            {
                 $service | Should-HaveMethod -Method 'GetInfo'
             }
         }
 
         It 'Should validate that each service in collection has IsType method using Should-HaveMethod' {
-            foreach ($service in $serviceCollection) {
+            foreach ($service in $serviceCollection)
+            {
                 $service | Should-HaveMethod -Method 'IsType'
             }
         }
@@ -256,25 +268,36 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
             # Simulate a configuration object that might be used in DSC or similar scenarios
             $dscConfiguration = [PSCustomObject]@{
                 ResourceName = 'FileResource'
-                Path = 'C:\TestFile.txt'
-                Content = 'Test content'
-                Ensure = 'Present'
+                Path         = 'C:\TestFile.txt'
+                Content      = 'Test content'
+                Ensure       = 'Present'
             }
 
             # Add methods that simulate DSC resource methods
             $dscConfiguration | Add-Member -MemberType ScriptMethod -Name 'Get' -Value {
                 return @{
-                    Path = $this.Path
+                    Path    = $this.Path
                     Content = $this.Content
-                    Ensure = if (Test-Path $this.Path) { 'Present' } else { 'Absent' }
+                    Ensure  = if (Test-Path $this.Path)
+                    {
+                        'Present'
+                    }
+                    else
+                    {
+                        'Absent'
+                    }
                 }
             }
 
             $dscConfiguration | Add-Member -MemberType ScriptMethod -Name 'Set' -Value {
-                if ($this.Ensure -eq 'Present') {
+                if ($this.Ensure -eq 'Present')
+                {
                     Set-Content -Path $this.Path -Value $this.Content -Force
-                } else {
-                    if (Test-Path $this.Path) {
+                }
+                else
+                {
+                    if (Test-Path $this.Path)
+                    {
                         Remove-Item -Path $this.Path -Force
                     }
                 }
@@ -301,7 +324,8 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
         It 'Should validate all DSC methods exist in a complete validation scenario' {
             $requiredMethods = @('Get', 'Set', 'Test')
 
-            foreach ($method in $requiredMethods) {
+            foreach ($method in $requiredMethods)
+            {
                 $dscConfiguration | Should-HaveMethod -Method $method
             }
         }
@@ -339,7 +363,7 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
             # Simulate a test scenario where we're validating a mock API client
             $mockApiClient = [PSCustomObject]@{
                 BaseUrl = 'https://api.example.com'
-                ApiKey = 'test-key-123'
+                ApiKey  = 'test-key-123'
                 Timeout = 30
             }
 

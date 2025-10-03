@@ -46,7 +46,7 @@ Describe 'Assert-ObjectProperty' {
     Context 'When using AssertProperty parameter set' {
         It 'Should pass when object has the specified property' {
             $testObject = [PSCustomObject]@{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -55,7 +55,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should pass when object has property with null value' {
             $testObject = [PSCustomObject]@{
-                Name = $null
+                Name  = $null
                 Value = 123
             }
 
@@ -64,7 +64,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should throw when object does not have the specified property' {
             $testObject = [PSCustomObject]@{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -96,7 +96,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should handle pipeline input' {
             $testObject = [PSCustomObject]@{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -116,7 +116,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should work with hashtables' {
             $testHashtable = @{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -130,11 +130,13 @@ Describe 'Assert-ObjectProperty' {
         }
 
         It 'Should work with custom classes' {
-            class TestClass {
+            class TestClass
+            {
                 [string]$Name
                 [int]$Value
 
-                TestClass([string]$name, [int]$value) {
+                TestClass([string]$name, [int]$value)
+                {
                     $this.Name = $name
                     $this.Value = $value
                 }
@@ -149,7 +151,7 @@ Describe 'Assert-ObjectProperty' {
     Context 'When using AssertValue parameter set' {
         It 'Should pass when object has property with matching value' {
             $testObject = [PSCustomObject]@{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -158,7 +160,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should pass when property value is null and expected value is null' {
             $testObject = [PSCustomObject]@{
-                Name = $null
+                Name  = $null
                 Value = 123
             }
 
@@ -167,7 +169,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should throw when property value does not match expected value' {
             $testObject = [PSCustomObject]@{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -178,7 +180,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should throw when object does not have the specified property' {
             $testObject = [PSCustomObject]@{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -201,9 +203,9 @@ Describe 'Assert-ObjectProperty' {
         It 'Should handle different data types correctly' {
             $testObject = [PSCustomObject]@{
                 StringValue = 'Test'
-                IntValue = 123
-                BoolValue = $true
-                ArrayValue = @(1, 2, 3)
+                IntValue    = 123
+                BoolValue   = $true
+                ArrayValue  = @(1, 2, 3)
             }
 
             { Assert-ObjectProperty -Actual $testObject -Property 'StringValue' -Value 'Test' } | Should -Not -Throw
@@ -223,7 +225,7 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should handle pipeline input with value assertion' {
             $testObject = [PSCustomObject]@{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -261,7 +263,7 @@ Describe 'Assert-ObjectProperty' {
         It 'Should handle special characters in property names' {
             $testHashtable = @{
                 'Property-With-Dashes' = 'Test'
-                'Property.With.Dots' = 'Test'
+                'Property.With.Dots'   = 'Test'
                 'Property With Spaces' = 'Test'
             }
 

@@ -115,14 +115,17 @@ Describe 'Assert-ObjectMethod' {
 
     Context 'When working with different object types' {
         It 'Should work with custom classes' {
-            class TestClass {
+            class TestClass
+            {
                 [string]$Name
 
-                TestClass([string]$name) {
+                TestClass([string]$name)
+                {
                     $this.Name = $name
                 }
 
-                [string] GetDisplayName() {
+                [string] GetDisplayName()
+                {
                     return "Display: $($this.Name)"
                 }
             }
@@ -140,7 +143,7 @@ Describe 'Assert-ObjectMethod' {
 
         It 'Should work with hashtables' {
             $testHashtable = @{
-                Name = 'Test'
+                Name  = 'Test'
                 Value = 123
             }
 
@@ -155,12 +158,14 @@ Describe 'Assert-ObjectMethod' {
 
         It 'Should work with FileInfo objects' {
             $tempFile = New-TemporaryFile
-            try {
+            try
+            {
                 $fileInfo = Get-Item $tempFile.FullName
 
                 { Assert-ObjectMethod -Actual $fileInfo -Method 'Delete' } | Should -Not -Throw
             }
-            finally {
+            finally
+            {
                 Remove-Item $tempFile.FullName -Force -ErrorAction SilentlyContinue
             }
         }

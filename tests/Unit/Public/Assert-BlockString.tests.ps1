@@ -65,7 +65,7 @@ Describe 'Assert-BlockString' {
     }
 
     It 'Should throw when Actual is string array' {
-        $mockActual = @('1','2')
+        $mockActual = @('1', '2')
         $mockExpected = 'Test string'
 
         { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Throw

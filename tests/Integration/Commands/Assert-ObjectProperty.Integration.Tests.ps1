@@ -39,17 +39,17 @@ Describe 'Assert-ObjectProperty' {
         BeforeAll {
             # Create a mock configuration object like you'd see in real tests
             $script:mockConfig = [PSCustomObject]@{
-                ServerName = 'TestServer'
-                Port = 8080
+                ServerName         = 'TestServer'
+                Port               = 8080
                 DatabaseConnection = [PSCustomObject]@{
-                    Server = 'db.test.local'
+                    Server   = 'db.test.local'
                     Database = 'TestDB'
-                    Timeout = 30
+                    Timeout  = 30
                 }
-                Features = @('Logging', 'Caching', 'Authentication')
-                Settings = @{
-                    Debug = $true
-                    LogLevel = 'Verbose'
+                Features           = @('Logging', 'Caching', 'Authentication')
+                Settings           = @{
+                    Debug          = $true
+                    LogLevel       = 'Verbose'
                     MaxConnections = 100
                 }
             }
@@ -91,7 +91,8 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should verify FileInfo object properties' {
             $tempFile = New-TemporaryFile
-            try {
+            try
+            {
                 $fileInfo = Get-Item $tempFile.FullName -ErrorAction Stop
 
                 # Common pattern: verifying file system objects
@@ -101,7 +102,8 @@ Describe 'Assert-ObjectProperty' {
                 $fileInfo | Should-HaveProperty -Property 'CreationTime'
                 $fileInfo | Should-HaveProperty -Property 'Directory'
             }
-            finally {
+            finally
+            {
                 Remove-Item $tempFile.FullName -Force -ErrorAction SilentlyContinue
             }
         }
@@ -121,21 +123,24 @@ Describe 'Assert-ObjectProperty' {
     Context 'Testing custom PowerShell classes with Should-HaveProperty' {
         BeforeAll {
             # Define a test class like you might in integration tests
-            class TestService {
+            class TestService
+            {
                 [string]$Name
                 [string]$Status
                 [int]$Port
                 [datetime]$LastStarted
                 [hashtable]$Configuration
 
-                TestService([string]$name, [int]$port) {
+                TestService([string]$name, [int]$port)
+                {
                     $this.Name = $name
                     $this.Port = $port
                     $this.Status = 'Stopped'
                     $this.Configuration = @{}
                 }
 
-                [void]Start() {
+                [void]Start()
+                {
                     $this.Status = 'Running'
                     $this.LastStarted = Get-Date
                 }
@@ -144,7 +149,7 @@ Describe 'Assert-ObjectProperty' {
             $script:testService = [TestService]::new('WebAPI', 8080)
             $script:testService.Configuration = @{
                 'MaxRequestSize' = 1048576
-                'EnableCors' = $true
+                'EnableCors'     = $true
                 'AllowedOrigins' = @('localhost', '127.0.0.1')
             }
             $script:testService.Start()
@@ -178,7 +183,8 @@ Describe 'Assert-ObjectProperty' {
 
         It 'Should verify properties of objects in collections' {
             # Common pattern: testing collections of objects
-            foreach ($service in $script:mockServiceCollection) {
+            foreach ($service in $script:mockServiceCollection)
+            {
                 $service | Should-HaveProperty -Property 'Name'
                 $service | Should-HaveProperty -Property 'Port'
                 $service | Should-HaveProperty -Property 'Type'
@@ -199,7 +205,7 @@ Describe 'Assert-ObjectProperty' {
     Context 'Testing error scenarios with meaningful messages' {
         BeforeAll {
             $script:testObject = [PSCustomObject]@{
-                ValidProperty = 'TestValue'
+                ValidProperty   = 'TestValue'
                 AnotherProperty = 123
             }
         }
@@ -217,11 +223,13 @@ Describe 'Assert-ObjectProperty' {
         }
 
         It 'Should provide meaningful error with Because parameter' {
-            try {
+            try
+            {
                 $script:testObject | Should-HaveProperty -Property 'MissingProperty' -Because 'this property is required for the integration test'
                 throw 'Should have thrown an exception'
             }
-            catch {
+            catch
+            {
                 $_.Exception.Message | Should -Match 'because this property is required for the integration test'
             }
         }
@@ -232,33 +240,33 @@ Describe 'Assert-ObjectProperty' {
             # Simulate a complex configuration object from a real application
             $appConfig = [PSCustomObject]@{
                 Application = [PSCustomObject]@{
-                    Name = 'MyWebApp'
-                    Version = '2.1.0'
+                    Name        = 'MyWebApp'
+                    Version     = '2.1.0'
                     Environment = 'Production'
                 }
-                Server = [PSCustomObject]@{
+                Server      = [PSCustomObject]@{
                     Host = '0.0.0.0'
                     Port = 443
-                    SSL = [PSCustomObject]@{
-                        Enabled = $true
+                    SSL  = [PSCustomObject]@{
+                        Enabled     = $true
                         Certificate = 'mycert.pfx'
-                        Protocols = @('TLS1.2', 'TLS1.3')
+                        Protocols   = @('TLS1.2', 'TLS1.3')
                     }
                 }
-                Database = [PSCustomObject]@{
-                    Primary = [PSCustomObject]@{
+                Database    = [PSCustomObject]@{
+                    Primary     = [PSCustomObject]@{
                         ConnectionString = 'Server=primary-db;Database=MyApp'
-                        MaxPoolSize = 100
+                        MaxPoolSize      = 100
                     }
                     ReadReplica = [PSCustomObject]@{
                         ConnectionString = 'Server=replica-db;Database=MyApp'
-                        MaxPoolSize = 50
+                        MaxPoolSize      = 50
                     }
                 }
-                Features = @{
-                    'Caching' = $true
-                    'Logging' = $true
-                    'Metrics' = $true
+                Features    = @{
+                    'Caching'      = $true
+                    'Logging'      = $true
+                    'Metrics'      = $true
                     'HealthChecks' = $true
                 }
             }
