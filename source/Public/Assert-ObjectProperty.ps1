@@ -183,19 +183,8 @@ function Assert-ObjectProperty
         }
         elseif ($actualValue -is [System.Array] -and $Value -is [System.Array])
         {
-            # For arrays, compare element by element
-            if ($actualValue.Count -eq $Value.Count)
-            {
-                $valuesAreEqual = $true
-                for ($i = 0; $i -lt $actualValue.Count; $i++)
-                {
-                    if ($actualValue[$i] -ne $Value[$i])
-                    {
-                        $valuesAreEqual = $false
-                        break
-                    }
-                }
-            }
+            # Use SequenceEqual for efficient structural array comparison
+            $valuesAreEqual = [System.Linq.Enumerable]::SequenceEqual([System.Collections.Generic.IEnumerable[object]]$actualValue, [System.Collections.Generic.IEnumerable[object]]$Value)
         }
         else
         {
