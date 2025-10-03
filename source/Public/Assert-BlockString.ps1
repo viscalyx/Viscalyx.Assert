@@ -53,11 +53,12 @@
 #>
 function Assert-BlockString
 {
-    [Alias('Should-BeBlockString')]
-    [CmdletBinding()]
-    [OutputType([System.Boolean])]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('UseSyntacticallyCorrectExamples', '', Justification = 'Because the examples are syntactically correct. The rule does not seem to understand that there is pipeline input.')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
+    [CmdletBinding()]
+    [Alias('Should-BeBlockString')]
+    [OutputType([System.Boolean])]
     param
     (
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]

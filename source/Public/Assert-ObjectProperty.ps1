@@ -59,11 +59,13 @@
 #>
 function Assert-ObjectProperty
 {
-    [Alias('Should-HaveProperty')]
-    [CmdletBinding(DefaultParameterSetName = 'AssertProperty')]
-    [OutputType([System.Boolean])]
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('UseSyntacticallyCorrectExamples', '', Justification = 'Because the examples are syntactically correct. The rule does not seem to understand that there is pipeline input.')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
+    [CmdletBinding(DefaultParameterSetName = 'AssertProperty')]
+    [Alias('Should-HaveProperty')]
+    [OutputType([System.Boolean])]
     param
     (
         [Parameter(ParameterSetName = 'AssertProperty', Position = 0, Mandatory = $true)]

@@ -52,11 +52,12 @@
 #>
 function Assert-ObjectMethod
 {
-    [Alias('Should-HaveMethod')]
-    [CmdletBinding()]
-    [OutputType([System.Boolean])]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('UseSyntacticallyCorrectExamples', '', Justification = 'Because the examples are syntactically correct. The rule does not seem to understand that there is pipeline input.')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
+    [CmdletBinding()]
+    [Alias('Should-HaveMethod')]
+    [OutputType([System.Boolean])]
     param
     (
         [Parameter(Position = 0, Mandatory = $true)]
