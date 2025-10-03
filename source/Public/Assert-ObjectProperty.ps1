@@ -71,8 +71,8 @@ function Assert-ObjectProperty
         [System.String]
         $Property,
 
-        [Parameter(ParameterSetName = 'AssertProperty', Position = 1, ValueFromPipeline = $true)]
-        [Parameter(ParameterSetName = 'AssertValue', Position = 2, ValueFromPipeline = $true)]
+        [Parameter(ParameterSetName = 'AssertProperty', Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(ParameterSetName = 'AssertValue', Position = 2, Mandatory = $true, ValueFromPipeline = $true)]
         $Actual,
 
         [Parameter(ParameterSetName = 'AssertValue', Position = 1, Mandatory = $true)]

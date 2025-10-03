@@ -63,7 +63,7 @@ function Assert-ObjectMethod
         [System.String]
         $Method,
 
-        [Parameter(Position = 1, ValueFromPipeline = $true)]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
         $Actual,
 
         [Parameter()]

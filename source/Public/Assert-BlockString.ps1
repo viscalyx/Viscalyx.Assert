@@ -60,7 +60,7 @@ function Assert-BlockString
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param
     (
-        [Parameter(Position = 1, ValueFromPipeline = $true)]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
         $Actual,
 
         [Parameter(Position = 0, Mandatory = $true)]
