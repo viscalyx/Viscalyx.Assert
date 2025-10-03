@@ -1,72 +1,40 @@
-<#PSScriptInfo
-.VERSION 1.0.0
-.GUID a5b6c7d8-9e0f-4a1b-8c2d-3e4f5a6b7c8e
-.AUTHOR DSC Community
-.COMPANYNAME DSC Community
-.COPYRIGHT DSC Community contributors. All rights reserved.
-.TAGS DSCResource
-.LICENSEURI https://github.com/viscalyx/Viscalyx.Assert/blob/main/LICENSE
-.PROJECTURI https://github.com/viscalyx/Viscalyx.Assert
-.ICONURI
-.EXTERNALMODULEDEPENDENCIES
-.REQUIREDSCRIPTS
-.EXTERNALSCRIPTDEPENDENCIES
-.RELEASENOTES First version.
-.PRIVATEDATA
-#>
-
-<#
-    .DESCRIPTION
-        Integration tests for Assert-BlockString command using Should-BeBlockString alias
-        in realistic scenarios that demonstrate practical usage patterns.
-#>
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Suppressing this rule because Script Analyzer does not understand Pester syntax.')]
+param ()
 
 BeforeDiscovery {
     try
     {
         if (-not (Get-Module -Name 'DscResource.Test'))
         {
-            # Assumes dependencies has been resolved, so if this module is not available, run 'noop' task.
+            # Assumes dependencies have been resolved, so if this module is not available, run 'noop' task.
             if (-not (Get-Module -Name 'DscResource.Test' -ListAvailable))
             {
                 # Redirect all streams to $null, except the error stream (stream 2)
-                & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 2>&1 4>&1 5>&1 6>&1 > $null
+                & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 3>&1 4>&1 5>&1 6>&1 > $null
             }
 
-            # Re-import the module using force to get any code changes between runs.
+            # If the dependencies have not been resolved, this will throw an error.
             Import-Module -Name 'DscResource.Test' -Force -ErrorAction 'Stop'
         }
-
-        $script:dscModuleName = 'Viscalyx.Assert'
-
-        Import-Module -Name $script:dscModuleName -Force -ErrorAction 'Stop'
     }
     catch [System.IO.FileNotFoundException]
     {
-        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -ResolveDependency -Tasks build" first.'
+        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -ResolveDependency -Tasks noop" first.'
     }
 }
 
 BeforeAll {
-    $script:dscModuleName = 'Viscalyx.Assert'
+    $script:moduleName = 'Viscalyx.Assert'
 
-    # Make sure to import the built module
-    $builtModulePath = Join-Path -Path $PSScriptRoot -ChildPath '../../../output/builtModule/Viscalyx.Assert/*/Viscalyx.Assert.psm1'
-    $builtModulePath = Get-Item -Path $builtModulePath -ErrorAction Stop
-
-    Import-Module -Name $builtModulePath.FullName -Force -ErrorAction 'Stop'
-
-    $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:dscModuleName
+    Import-Module -Name $script:moduleName -Force -ErrorAction 'Stop'
 }
 
 AfterAll {
-    $PSDefaultParameterValues.Remove('InModuleScope:ModuleName')
-
-    # Unload the module being tested so that it doesn't impact other tests.
-    Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
+    # Unload the module being tested so that it doesn't impact any other tests.
+    Get-Module -Name $script:moduleName -All | Remove-Module -Force
 }
 
-Describe 'Assert-BlockString Integration Tests using Should-BeBlockString alias' -Tag @('Integration') {
+Describe 'Assert-BlockString' -Tag @('Integration') {
     Context 'When validating configuration files in test scenarios' {
         It 'Should validate JSON configuration content using Should-BeBlockString' {
             # Simulate validating generated JSON configuration
