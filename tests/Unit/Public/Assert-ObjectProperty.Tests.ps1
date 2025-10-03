@@ -126,7 +126,21 @@ Describe 'Assert-ObjectProperty' {
             $null = $testObject | Assert-ObjectProperty -Property 'Name'
         }
 
-        It 'Should handle multiple objects in pipeline by using the last one' {
+        It 'Should handle multiple objects in pipeline and check all of them' {
+            $testObject1 = [PSCustomObject]@{
+                Name  = 'Test1'
+                Value = 'Value1'
+            }
+            $testObject2 = [PSCustomObject]@{
+                Name  = 'Test2'
+                Value = 'Value2'
+            }
+
+            # Both objects have 'Value' property, so this should pass
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
+        }
+
+        It 'Should throw when one of the pipeline objects is missing the property' {
             $testObject1 = [PSCustomObject]@{
                 Name = 'Test1'
             }
@@ -134,7 +148,10 @@ Describe 'Assert-ObjectProperty' {
                 Value = 'Test2'
             }
 
-            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
+            # First object doesn't have 'Value' property, so this should fail
+            {
+                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
+            } | Should -Throw -ExpectedMessage "*property 'Value'*"
         }
 
         It 'Should work with hashtables' {
