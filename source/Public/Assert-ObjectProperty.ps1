@@ -97,7 +97,7 @@ function Assert-ObjectProperty
     }
 
     # If multiple objects were passed via pipeline, iterate through each one
-    if ($Actual -is [System.Array] -and $Actual.Count -gt 0)
+    if ($hasPipelineInput -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
     {
         foreach ($currentObject in $Actual)
         {
