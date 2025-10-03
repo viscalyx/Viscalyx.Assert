@@ -315,4 +315,62 @@ Describe 'Assert-ObjectProperty' {
             } | Should -Throw -ExpectedMessage "Expected property 'Name' to have value 'Expected', but the actual value was 'Test'."
         }
     }
+
+    Context 'When testing edge cases for uncovered lines' {
+        It 'Should find property via PSObject.Properties when it exists (line 136)' {
+            # Create an object where hashtable check fails but PSObject.Properties works
+            # The hashtable check is on line ~427: if ($Actual -is [System.Collections.IDictionary] -and $Actual.ContainsKey($Property))
+            # We need an object that is NOT a hashtable but has properties accessible via PSObject.Properties
+            $testObject = [PSCustomObject]@{}
+            $testObject | Add-Member -MemberType NoteProperty -Name 'DynamicProperty' -Value 'TestValue'
+
+            # This should find the property via PSObject.Properties[$Property] and set $hasProperty = $true (line 136)
+            { Assert-ObjectProperty -Actual $testObject -Property 'DynamicProperty' } | Should -Not -Throw
+        }
+
+        It 'Should trigger Get-Member fallback when PSObject.Properties fails (line 151)' {
+            # Create an object that will cause Get-Member to return null, triggering line 151
+            $testObject = [PSCustomObject]@{ Name = 'Test' }
+
+            # Mock Get-Member to return $null to trigger line 151 ($hasProperty = $false)
+            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { return $null }
+
+            { Assert-ObjectProperty -Actual $testObject -Property 'NonExistentProperty' } | Should -Throw
+        }
+
+        It 'Should trigger direct property access catch block (line 158)' {
+            # Create an object that will cause direct property access to throw an exception
+            $testObject = [PSCustomObject]@{ Name = 'Test' }
+
+            # Add a property that throws when accessed
+            $testObject | Add-Member -MemberType ScriptProperty -Name 'BadProperty' -Value { throw 'Property access failed' }
+
+            # This should trigger the catch block at line 158 when $Actual.$Property throws
+            { Assert-ObjectProperty -Actual $testObject -Property 'NonExistentProperty' } | Should -Throw
+        }
+
+        It 'Should handle array comparison where arrays have different counts' {
+            # Test array comparison with different counts to trigger the $valuesAreEqual = $false path
+            $testObject = [PSCustomObject]@{
+                Items = @(1, 2, 3)
+            }
+            $expectedValue = @(1, 2)  # Different count
+
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'Items' -Value $expectedValue
+            } | Should -Throw -ExpectedMessage "*but the actual value was*"
+        }
+
+        It 'Should handle array comparison where individual elements differ' {
+            # Test array comparison where individual elements differ
+            $testObject = [PSCustomObject]@{
+                Items = @(1, 2, 3)
+            }
+            $expectedValue = @(1, 2, 4)  # Same count, different last element
+
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'Items' -Value $expectedValue
+            } | Should -Throw -ExpectedMessage "*but the actual value was*"
+        }
+    }
 }

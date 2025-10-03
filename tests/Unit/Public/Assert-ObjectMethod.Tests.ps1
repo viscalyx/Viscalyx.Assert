@@ -262,4 +262,53 @@ Describe 'Assert-ObjectMethod' {
             { Assert-ObjectMethod -Actual $testObject -Method 'ToString' } | Should -Not -Throw
         }
     }
+
+    Context 'When testing edge cases for uncovered lines' {
+        It 'Should find method via PSObject.Methods when it exists (line 129)' {
+            # Create an object where Get-Member fails but PSObject.Methods works
+            # Mock Get-Member to return null so it falls through to PSObject.Methods check
+            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { return $null } -ParameterFilter { $MemberType -match 'Method' }
+
+            $testObject = [PSCustomObject]@{ Name = 'Test' }
+            $testObject | Add-Member -MemberType ScriptMethod -Name 'TestMethod' -Value { return 'Success' }
+
+            # This should find the method via PSObject.Methods[$Method] and set $hasMethod = $true (line 129)
+            { Assert-ObjectMethod -Actual $testObject -Method 'TestMethod' } | Should -Not -Throw
+        }
+
+        It 'Should trigger reflection catch block when GetMethod throws (line 135)' {
+            # Create a mock type that will cause GetMethod to throw
+            Add-Type -TypeDefinition @"
+                using System;
+                public class RestrictedClass {
+                    public string Name { get; set; }
+                    public new Type GetType() {
+                        throw new System.Security.SecurityException("Access denied");
+                    }
+                }
+"@ -ErrorAction SilentlyContinue
+
+            $restrictedObject = New-Object RestrictedClass
+            $restrictedObject.Name = 'Test'
+
+            # This should trigger the catch block at line 135 when GetMethod fails
+            { Assert-ObjectMethod -Actual $restrictedObject -Method 'NonExistentMethod' } | Should -Throw
+        }
+
+        It 'Should trigger outer catch block when PSObject access fails (line 142)' {
+            # Create an object that will cause the entire try block to fail
+            Add-Type -TypeDefinition @"
+                public class TestClass {
+                    public string Name { get; set; }
+                }
+"@ -ErrorAction SilentlyContinue
+
+            $testObject = [TestClass]@{ Name = 'Test' }
+
+            # Mock PSObject.Methods to throw an exception to trigger outer catch (line 142)
+            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { throw 'PSObject access failed' }
+
+            { Assert-ObjectMethod -Actual $testObject -Method 'NonExistentMethod' } | Should -Throw
+        }
+    }
 }
