@@ -5,6 +5,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Asserts:
+  - `Assert-ObjectProperty` (alias `Should-HaveProperty`) - Asserts that an
+    object contains a specified property and optionally that the property has
+    a specified value.
+
 ### Changed
 
 - Bump action Stale to v10.

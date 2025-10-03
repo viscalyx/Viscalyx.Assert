@@ -13,4 +13,11 @@ ConvertFrom-StringData @'
     # This string is intentionally lower-cased to match the casing of the Pester error message.
     Assert_BlockString_StringsNotEqual_Because = because
     Assert_BlockString_Difference = , but they were not. Difference is highlighted:
+
+    ## New localized strings for Assert-ObjectProperty
+    Assert_ObjectProperty_ActualIsNull = Expected the actual value not to be null, but it was null.
+    Assert_ObjectProperty_PropertyNotFound = Expected the object to have property '{0}', but the property was not found.
+    Assert_ObjectProperty_ValueMismatch = Expected property '{0}' to have value '{1}', but the actual value was '{2}'.
+    # This string is intentionally lower-cased to match the casing of the Pester error message.
+    Assert_ObjectProperty_Because = because
 '@
