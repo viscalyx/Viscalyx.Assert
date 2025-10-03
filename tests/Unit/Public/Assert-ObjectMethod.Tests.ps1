@@ -60,6 +60,14 @@ Describe 'Assert-ObjectMethod' {
             $result.ParameterSetName | Should -Be $ExpectedParameterSetName
             $result.ParameterListAsString | Should -Be $ExpectedParameters
         }
+
+        It 'Should have Method parameter as mandatory' {
+            (Get-Command -Name 'Assert-ObjectMethod').Parameters['Method'].Attributes.Mandatory | Should -BeTrue
+        }
+
+        It 'Should have Actual parameter as mandatory' {
+            (Get-Command -Name 'Assert-ObjectMethod').Parameters['Actual'].Attributes.Mandatory | Should -BeTrue
+        }
     }
 
     Context 'When checking method existence' {

@@ -60,6 +60,14 @@ Describe 'Assert-BlockString' {
             $result.ParameterSetName | Should -Be $ExpectedParameterSetName
             $result.ParameterListAsString | Should -Be $ExpectedParameters
         }
+
+        It 'Should have Expected parameter as mandatory' {
+            (Get-Command -Name 'Assert-BlockString').Parameters['Expected'].Attributes.Mandatory | Should -BeTrue
+        }
+
+        It 'Should have Actual parameter as mandatory' {
+            (Get-Command -Name 'Assert-BlockString').Parameters['Actual'].Attributes.Mandatory | Should -BeTrue
+        }
     }
 
     It 'Should pass when Actual and Expected are equal strings' {

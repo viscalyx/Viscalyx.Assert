@@ -64,6 +64,14 @@ Describe 'Assert-ObjectProperty' {
             $result.ParameterSetName | Should -Be $ExpectedParameterSetName
             $result.ParameterListAsString | Should -Be $ExpectedParameters
         }
+
+        It 'Should have Property parameter as mandatory' {
+            (Get-Command -Name 'Assert-ObjectProperty').Parameters['Property'].Attributes.Mandatory | Should -BeTrue
+        }
+
+        It 'Should have Actual parameter as mandatory' {
+            (Get-Command -Name 'Assert-ObjectProperty').Parameters['Actual'].Attributes.Mandatory | Should -BeTrue
+        }
     }
 
     Context 'When using AssertProperty parameter set' {
