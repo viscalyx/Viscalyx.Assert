@@ -54,7 +54,7 @@ function Assert-ObjectMethod
 {
     [Alias('Should-HaveMethod')]
     [CmdletBinding()]
-    [OutputType()]
+    [OutputType([System.Boolean])]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param
@@ -64,9 +64,11 @@ function Assert-ObjectMethod
         $Method,
 
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
+        [System.Object]
         $Actual,
 
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [System.String]
         $Because
     )
