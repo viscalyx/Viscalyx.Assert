@@ -58,7 +58,7 @@ function Assert-BlockString
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     [CmdletBinding()]
     [Alias('Should-BeBlockString')]
-    [OutputType([System.Boolean])]
+    [OutputType()]
     param
     (
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
