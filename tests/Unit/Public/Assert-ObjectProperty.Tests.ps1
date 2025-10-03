@@ -13,7 +13,7 @@ BeforeDiscovery {
                 & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 3>&1 4>&1 5>&1 6>&1 > $null
             }
 
-            # If the dependencies has not been resolved, this will throw an error.
+            # If the dependencies have not been resolved, this will throw an error.
             Import-Module -Name 'DscResource.Test' -Force -ErrorAction 'Stop'
         }
     }
@@ -43,6 +43,29 @@ AfterAll {
 }
 
 Describe 'Assert-ObjectProperty' {
+    Context 'When validating parameter sets' {
+        It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
+            @{
+                ExpectedParameterSetName = 'AssertProperty'
+                ExpectedParameters = '[-Property] <string> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+            }
+            @{
+                ExpectedParameterSetName = 'AssertValue'
+                ExpectedParameters = '[-Property] <string> [-Value] <Object> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+            }
+        ) {
+            $result = (Get-Command -Name 'Assert-ObjectProperty').ParameterSets |
+                Where-Object -FilterScript { $_.Name -eq $ExpectedParameterSetName } |
+                Select-Object -Property @(
+                    @{ Name = 'ParameterSetName'; Expression = { $_.Name } },
+                    @{ Name = 'ParameterListAsString'; Expression = { $_.ToString() } }
+                )
+
+            $result.ParameterSetName | Should -Be $ExpectedParameterSetName
+            $result.ParameterListAsString | Should -Be $ExpectedParameters
+        }
+    }
+
     Context 'When using AssertProperty parameter set' {
         It 'Should pass when object has the specified property' {
             $testObject = [PSCustomObject]@{

@@ -13,7 +13,7 @@ BeforeDiscovery {
                 & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 3>&1 4>&1 5>&1 6>&1 > $null
             }
 
-            # If the dependencies has not been resolved, this will throw an error.
+            # If the dependencies have not been resolved, this will throw an error.
             Import-Module -Name 'DscResource.Test' -Force -ErrorAction 'Stop'
         }
     }
@@ -43,6 +43,25 @@ AfterAll {
 }
 
 Describe 'Assert-BlockString' {
+    Context 'When validating parameter sets' {
+        It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
+            @{
+                ExpectedParameterSetName = '__AllParameterSets'
+                ExpectedParameters = '[-Expected] <Object> [-Actual] <Object> [-Because <string>] [-Highlight <string>] [-NoHexOutput] [<CommonParameters>]'
+            }
+        ) {
+            $result = (Get-Command -Name 'Assert-BlockString').ParameterSets |
+                Where-Object -FilterScript { $_.Name -eq $ExpectedParameterSetName } |
+                Select-Object -Property @(
+                    @{ Name = 'ParameterSetName'; Expression = { $_.Name } },
+                    @{ Name = 'ParameterListAsString'; Expression = { $_.ToString() } }
+                )
+
+            $result.ParameterSetName | Should -Be $ExpectedParameterSetName
+            $result.ParameterListAsString | Should -Be $ExpectedParameters
+        }
+    }
+
     It 'Should pass when Actual and Expected are equal strings' {
         $mockActual = 'Test string'
         $mockExpected = 'Test string'
