@@ -124,11 +124,28 @@ Describe 'Assert-ObjectMethod' {
             $null = $testString | Assert-ObjectMethod -Method 'ToString'
         }
 
-        It 'Should handle multiple objects in pipeline by using the last one' {
+        It 'Should handle multiple objects in pipeline and check all of them' {
             $testString1 = 'Hello'
             $testString2 = 'World'
 
+            # Both strings have 'ToString' method, so this should pass
             $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString'
+        }
+
+        It 'Should throw when one of the pipeline objects is missing the method' {
+            $testObject1 = [PSCustomObject]@{
+                Name = 'Test1'
+            }
+            # Add a method to the second object
+            $testObject2 = [PSCustomObject]@{
+                Name = 'Test2'
+            }
+            $testObject2 | Add-Member -MemberType ScriptMethod -Name 'CustomMethod' -Value { return 'Test' }
+
+            # First object doesn't have 'CustomMethod', so this should fail
+            {
+                $testObject1, $testObject2 | Assert-ObjectMethod -Method 'CustomMethod'
+            } | Should -Throw -ExpectedMessage "*method 'CustomMethod'*"
         }
     }
 
