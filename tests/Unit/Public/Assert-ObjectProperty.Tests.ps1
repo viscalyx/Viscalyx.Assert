@@ -50,7 +50,7 @@ Describe 'Assert-ObjectProperty' {
                 Value = 123
             }
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'Name' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'Name'
         }
 
         It 'Should pass when object has property with null value' {
@@ -59,7 +59,7 @@ Describe 'Assert-ObjectProperty' {
                 Value = 123
             }
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'Name' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'Name'
         }
 
         It 'Should throw when object does not have the specified property' {
@@ -100,7 +100,7 @@ Describe 'Assert-ObjectProperty' {
                 Value = 123
             }
 
-            { $testObject | Assert-ObjectProperty -Property 'Name' } | Should -Not -Throw
+            $null = $testObject | Assert-ObjectProperty -Property 'Name'
         }
 
         It 'Should handle multiple objects in pipeline by using the last one' {
@@ -111,7 +111,7 @@ Describe 'Assert-ObjectProperty' {
                 Value = 'Test2'
             }
 
-            { $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value' } | Should -Not -Throw
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
         }
 
         It 'Should work with hashtables' {
@@ -120,13 +120,13 @@ Describe 'Assert-ObjectProperty' {
                 Value = 123
             }
 
-            { Assert-ObjectProperty -Actual $testHashtable -Property 'Name' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testHashtable -Property 'Name'
         }
 
         It 'Should work with .NET objects' {
             $testObject = [System.IO.FileInfo]::new('C:\temp\test.txt')
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'Name' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'Name'
         }
 
         It 'Should work with custom classes' {
@@ -144,7 +144,7 @@ Describe 'Assert-ObjectProperty' {
 
             $testObject = [TestClass]::new('Test', 123)
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'Name' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'Name'
         }
     }
 
@@ -155,7 +155,7 @@ Describe 'Assert-ObjectProperty' {
                 Value = 123
             }
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'Name' -Value 'Test' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'Name' -Value 'Test'
         }
 
         It 'Should pass when property value is null and expected value is null' {
@@ -164,7 +164,7 @@ Describe 'Assert-ObjectProperty' {
                 Value = 123
             }
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'Name' -Value $null } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'Name' -Value $null
         }
 
         It 'Should throw when property value does not match expected value' {
@@ -208,10 +208,10 @@ Describe 'Assert-ObjectProperty' {
                 ArrayValue  = @(1, 2, 3)
             }
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'StringValue' -Value 'Test' } | Should -Not -Throw
-            { Assert-ObjectProperty -Actual $testObject -Property 'IntValue' -Value 123 } | Should -Not -Throw
-            { Assert-ObjectProperty -Actual $testObject -Property 'BoolValue' -Value $true } | Should -Not -Throw
-            { Assert-ObjectProperty -Actual $testObject -Property 'ArrayValue' -Value @(1, 2, 3) } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'StringValue' -Value 'Test'
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'IntValue' -Value 123
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'BoolValue' -Value $true
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'ArrayValue' -Value @(1, 2, 3)
         }
 
         It 'Should handle type coercion appropriately' {
@@ -220,7 +220,7 @@ Describe 'Assert-ObjectProperty' {
             }
 
             # PowerShell's -eq operator handles type coercion
-            { Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123'
         }
 
         It 'Should handle pipeline input with value assertion' {
@@ -229,7 +229,7 @@ Describe 'Assert-ObjectProperty' {
                 Value = 123
             }
 
-            { $testObject | Assert-ObjectProperty -Property 'Name' -Value 'Test' } | Should -Not -Throw
+            $null = $testObject | Assert-ObjectProperty -Property 'Name' -Value 'Test'
         }
     }
 
@@ -239,7 +239,7 @@ Describe 'Assert-ObjectProperty' {
                 Name = 'Test'
             }
 
-            { Should-HaveProperty -Actual $testObject -Property 'Name' } | Should -Not -Throw
+            $null = Should-HaveProperty -Actual $testObject -Property 'Name'
         }
 
         It 'Should be able to be called using its alias with value assertion' {
@@ -247,7 +247,7 @@ Describe 'Assert-ObjectProperty' {
                 Name = 'Test'
             }
 
-            { Should-HaveProperty -Actual $testObject -Property 'Name' -Value 'Test' } | Should -Not -Throw
+            $null = Should-HaveProperty -Actual $testObject -Property 'Name' -Value 'Test'
         }
     }
 
@@ -257,7 +257,7 @@ Describe 'Assert-ObjectProperty' {
                 'X' = 'SingleCharPropertyName'
             }
 
-            { Assert-ObjectProperty -Actual $testHashtable -Property 'X' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testHashtable -Property 'X'
         }
 
         It 'Should handle special characters in property names' {
@@ -267,9 +267,9 @@ Describe 'Assert-ObjectProperty' {
                 'Property With Spaces' = 'Test'
             }
 
-            { Assert-ObjectProperty -Actual $testHashtable -Property 'Property-With-Dashes' } | Should -Not -Throw
-            { Assert-ObjectProperty -Actual $testHashtable -Property 'Property.With.Dots' } | Should -Not -Throw
-            { Assert-ObjectProperty -Actual $testHashtable -Property 'Property With Spaces' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testHashtable -Property 'Property-With-Dashes'
+            $null = Assert-ObjectProperty -Actual $testHashtable -Property 'Property.With.Dots'
+            $null = Assert-ObjectProperty -Actual $testHashtable -Property 'Property With Spaces'
         }
 
         It 'Should handle case-sensitive property names correctly' {
@@ -277,14 +277,14 @@ Describe 'Assert-ObjectProperty' {
             $testHashtable = @{}
             $testHashtable['Name'] = 'Test'
 
-            { Assert-ObjectProperty -Actual $testHashtable -Property 'Name' -Value 'Test' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testHashtable -Property 'Name' -Value 'Test'
         }
 
         It 'Should handle dynamic properties on PSCustomObject' {
             $testObject = [PSCustomObject]@{}
             $testObject | Add-Member -NotePropertyName 'DynamicProperty' -NotePropertyValue 'Test'
 
-            { Assert-ObjectProperty -Actual $testObject -Property 'DynamicProperty' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'DynamicProperty'
         }
     }
 
@@ -325,7 +325,7 @@ Describe 'Assert-ObjectProperty' {
             $testObject | Add-Member -MemberType NoteProperty -Name 'DynamicProperty' -Value 'TestValue'
 
             # This should find the property via PSObject.Properties[$Property] and set $hasProperty = $true (line 136)
-            { Assert-ObjectProperty -Actual $testObject -Property 'DynamicProperty' } | Should -Not -Throw
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'DynamicProperty'
         }
 
         It 'Should trigger Get-Member fallback when PSObject.Properties fails (line 151)' {
