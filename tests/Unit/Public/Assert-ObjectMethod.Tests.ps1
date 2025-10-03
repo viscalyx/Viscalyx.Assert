@@ -51,13 +51,13 @@ Describe 'Assert-ObjectMethod' {
             # Add a script method to the object
             $testObject | Add-Member -MemberType ScriptMethod -Name 'TestMethod' -Value { return 'Test' }
 
-            { Assert-ObjectMethod -Actual $testObject -Method 'TestMethod' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'TestMethod'
         }
 
         It 'Should pass when .NET object has built-in method' {
             $testString = 'Hello World'
 
-            { Assert-ObjectMethod -Actual $testString -Method 'ToString' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testString -Method 'ToString'
         }
 
         It 'Should pass when object has GetHashCode method' {
@@ -65,7 +65,7 @@ Describe 'Assert-ObjectMethod' {
                 Name = 'Test'
             }
 
-            { Assert-ObjectMethod -Actual $testObject -Method 'GetHashCode' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'GetHashCode'
         }
 
         It 'Should throw when object does not have the specified method' {
@@ -102,14 +102,14 @@ Describe 'Assert-ObjectMethod' {
         It 'Should handle pipeline input' {
             $testString = 'Hello World'
 
-            { $testString | Assert-ObjectMethod -Method 'ToString' } | Should -Not -Throw
+            $null = $testString | Assert-ObjectMethod -Method 'ToString'
         }
 
         It 'Should handle multiple objects in pipeline by using the last one' {
             $testString1 = 'Hello'
             $testString2 = 'World'
 
-            { $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString' } | Should -Not -Throw
+            $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString'
         }
     }
 
@@ -132,13 +132,13 @@ Describe 'Assert-ObjectMethod' {
 
             $testObject = [TestClass]::new('Test')
 
-            { Assert-ObjectMethod -Actual $testObject -Method 'GetDisplayName' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'GetDisplayName'
         }
 
         It 'Should work with arrays' {
             $testArray = @(1, 2, 3)
 
-            { Assert-ObjectMethod -Actual $testArray -Method 'GetEnumerator' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testArray -Method 'GetEnumerator'
         }
 
         It 'Should work with hashtables' {
@@ -147,13 +147,13 @@ Describe 'Assert-ObjectMethod' {
                 Value = 123
             }
 
-            { Assert-ObjectMethod -Actual $testHashtable -Method 'ContainsKey' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testHashtable -Method 'ContainsKey'
         }
 
         It 'Should work with collections' {
             $testList = [System.Collections.Generic.List[string]]::new()
 
-            { Assert-ObjectMethod -Actual $testList -Method 'Add' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testList -Method 'Add'
         }
 
         It 'Should work with FileInfo objects' {
@@ -162,7 +162,7 @@ Describe 'Assert-ObjectMethod' {
             {
                 $fileInfo = Get-Item $tempFile.FullName
 
-                { Assert-ObjectMethod -Actual $fileInfo -Method 'Delete' } | Should -Not -Throw
+                $null = Assert-ObjectMethod -Actual $fileInfo -Method 'Delete'
             }
             finally
             {
@@ -173,7 +173,7 @@ Describe 'Assert-ObjectMethod' {
         It 'Should work with DateTime objects' {
             $testDate = Get-Date
 
-            { Assert-ObjectMethod -Actual $testDate -Method 'AddDays' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testDate -Method 'AddDays'
         }
     }
 
@@ -181,13 +181,13 @@ Describe 'Assert-ObjectMethod' {
         It 'Should be able to be called using its alias' {
             $testString = 'Hello World'
 
-            { Should-HaveMethod -Actual $testString -Method 'ToString' } | Should -Not -Throw
+            $null = Should-HaveMethod -Actual $testString -Method 'ToString'
         }
 
         It 'Should be able to be called using its alias with pipeline' {
             $testString = 'Hello World'
 
-            { $testString | Should-HaveMethod -Method 'ToString' } | Should -Not -Throw
+            $null = $testString | Should-HaveMethod -Method 'ToString'
         }
     }
 
@@ -197,15 +197,15 @@ Describe 'Assert-ObjectMethod' {
             $testObject = [PSCustomObject]@{}
             $testObject | Add-Member -MemberType ScriptMethod -Name 'Method_With_Underscores' -Value { return 'Test' }
 
-            { Assert-ObjectMethod -Actual $testObject -Method 'Method_With_Underscores' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'Method_With_Underscores'
         }
 
         It 'Should handle case-insensitive method names correctly' {
             $testString = 'Hello World'
 
             # PowerShell method names are case-insensitive
-            { Assert-ObjectMethod -Actual $testString -Method 'ToString' } | Should -Not -Throw
-            { Assert-ObjectMethod -Actual $testString -Method 'tostring' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testString -Method 'ToString'
+            $null = Assert-ObjectMethod -Actual $testString -Method 'tostring'
         }
 
         It 'Should handle methods inherited from base classes' {
@@ -213,7 +213,7 @@ Describe 'Assert-ObjectMethod' {
                 Name = 'Test'
             }
 
-            { Assert-ObjectMethod -Actual $testObject -Method 'Equals' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'Equals'
         }
 
         It 'Should fail when method does not exist on the instance' {
@@ -249,7 +249,7 @@ Describe 'Assert-ObjectMethod' {
             }
             $testObject | Add-Member -MemberType ScriptMethod -Name 'CustomMethod' -Value { return $this.Name.ToUpper() }
 
-            { Assert-ObjectMethod -Actual $testObject -Method 'CustomMethod' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'CustomMethod'
         }
 
         It 'Should detect note methods added to PSCustomObject' {
@@ -259,7 +259,7 @@ Describe 'Assert-ObjectMethod' {
             # Note: Add-Member with MemberType Method is not commonly used, but ScriptMethod is more common
             # We'll test what's actually supported
 
-            { Assert-ObjectMethod -Actual $testObject -Method 'ToString' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'ToString'
         }
     }
 
@@ -273,7 +273,7 @@ Describe 'Assert-ObjectMethod' {
             $testObject | Add-Member -MemberType ScriptMethod -Name 'TestMethod' -Value { return 'Success' }
 
             # This should find the method via PSObject.Methods[$Method] and set $hasMethod = $true (line 129)
-            { Assert-ObjectMethod -Actual $testObject -Method 'TestMethod' } | Should -Not -Throw
+            $null = Assert-ObjectMethod -Actual $testObject -Method 'TestMethod'
         }
 
         It 'Should trigger reflection catch block when GetMethod throws (line 135)' {

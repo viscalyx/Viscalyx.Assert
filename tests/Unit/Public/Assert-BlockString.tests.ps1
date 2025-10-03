@@ -47,7 +47,7 @@ Describe 'Assert-BlockString' {
         $mockActual = 'Test string'
         $mockExpected = 'Test string'
 
-        { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Not -Throw
+        $null = Assert-BlockString -Actual $mockActual -Expected $mockExpected
     }
 
     It 'Should throw when Actual and Expected are different strings' {
@@ -88,7 +88,7 @@ Describe 'Assert-BlockString' {
             'Test string' | Assert-BlockString -Expected $mockExpected
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty collection as Expected' {
@@ -96,7 +96,7 @@ Describe 'Assert-BlockString' {
             '' | Assert-BlockString -Expected @()
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty string as Expected' {
@@ -104,7 +104,7 @@ Describe 'Assert-BlockString' {
             '' | Assert-BlockString -Expected ''
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty collection as Actual' {
@@ -112,7 +112,7 @@ Describe 'Assert-BlockString' {
             Assert-BlockString -Actual @() -Expected @()
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty string as Actual' {
@@ -120,7 +120,7 @@ Describe 'Assert-BlockString' {
             Assert-BlockString -Actual '' -Expected ''
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should not return any hex output' {
@@ -130,7 +130,7 @@ Describe 'Assert-BlockString' {
             Assert-BlockString -Actual $mockLongString -Expected $mockLongString -NoHexOutput
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to be called using its alias' {
@@ -140,7 +140,7 @@ Describe 'Assert-BlockString' {
             'Test string' | Should-BeBlockString -Expected $mockExpected
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should throw the correct error message when Actual is not a string' {
