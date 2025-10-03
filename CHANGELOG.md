@@ -5,6 +5,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Asserts ([issue #11](https://github.com/viscalyx/Viscalyx.Assert/issues/11)):
+  - `Assert-ObjectProperty` (alias `Should-HaveProperty`) - Asserts that an
+    object contains a specified property and optionally that the property has
+    a specified value.
+  - `Assert-ObjectMethod` (alias `Should-HaveMethod`) - Asserts that an object
+    contains a specified method.
+
 ### Changed
 
 - Bump action Stale to v10.

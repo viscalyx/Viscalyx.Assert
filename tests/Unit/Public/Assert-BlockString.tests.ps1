@@ -6,27 +6,27 @@ BeforeDiscovery {
     {
         if (-not (Get-Module -Name 'DscResource.Test'))
         {
-            # Assumes dependencies has been resolved, so if this module is not available, run 'noop' task.
+            # Assumes dependencies have been resolved, so if this module is not available, run 'noop' task.
             if (-not (Get-Module -Name 'DscResource.Test' -ListAvailable))
             {
                 # Redirect all streams to $null, except the error stream (stream 2)
-                & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 2>&1 4>&1 5>&1 6>&1 > $null
+                & "$PSScriptRoot/../../../build.ps1" -Tasks 'noop' 3>&1 4>&1 5>&1 6>&1 > $null
             }
 
-            # If the dependencies has not been resolved, this will throw an error.
+            # If the dependencies have not been resolved, this will throw an error.
             Import-Module -Name 'DscResource.Test' -Force -ErrorAction 'Stop'
         }
     }
     catch [System.IO.FileNotFoundException]
     {
-        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -ResolveDependency -Tasks build" first.'
+        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -ResolveDependency -Tasks noop" first.'
     }
 }
 
 BeforeAll {
     $script:dscModuleName = 'Viscalyx.Assert'
 
-    Import-Module -Name $script:dscModuleName
+    Import-Module -Name $script:dscModuleName -Force -ErrorAction 'Stop'
 
     $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:dscModuleName
     $PSDefaultParameterValues['Mock:ModuleName'] = $script:dscModuleName
@@ -43,11 +43,38 @@ AfterAll {
 }
 
 Describe 'Assert-BlockString' {
+    Context 'When validating parameter sets' {
+        It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
+            @{
+                ExpectedParameterSetName = '__AllParameterSets'
+                ExpectedParameters = '[-Expected] <Object> [-Actual] <Object> [-Because <string>] [-Highlight <string>] [-NoHexOutput] [<CommonParameters>]'
+            }
+        ) {
+            $result = (Get-Command -Name 'Assert-BlockString').ParameterSets |
+                Where-Object -FilterScript { $_.Name -eq $ExpectedParameterSetName } |
+                Select-Object -Property @(
+                    @{ Name = 'ParameterSetName'; Expression = { $_.Name } },
+                    @{ Name = 'ParameterListAsString'; Expression = { $_.ToString() } }
+                )
+
+            $result.ParameterSetName | Should -Be $ExpectedParameterSetName
+            $result.ParameterListAsString | Should -Be $ExpectedParameters
+        }
+
+        It 'Should have Expected parameter as mandatory' {
+            (Get-Command -Name 'Assert-BlockString').Parameters['Expected'].Attributes.Mandatory | Should -BeTrue
+        }
+
+        It 'Should have Actual parameter as mandatory' {
+            (Get-Command -Name 'Assert-BlockString').Parameters['Actual'].Attributes.Mandatory | Should -BeTrue
+        }
+    }
+
     It 'Should pass when Actual and Expected are equal strings' {
         $mockActual = 'Test string'
         $mockExpected = 'Test string'
 
-        { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Not -Throw
+        $null = Assert-BlockString -Actual $mockActual -Expected $mockExpected
     }
 
     It 'Should throw when Actual and Expected are different strings' {
@@ -65,7 +92,7 @@ Describe 'Assert-BlockString' {
     }
 
     It 'Should throw when Actual is string array' {
-        $mockActual = @('1','2')
+        $mockActual = @('1', '2')
         $mockExpected = 'Test string'
 
         { Assert-BlockString -Actual $mockActual -Expected $mockExpected } | Should -Throw
@@ -88,7 +115,7 @@ Describe 'Assert-BlockString' {
             'Test string' | Assert-BlockString -Expected $mockExpected
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty collection as Expected' {
@@ -96,7 +123,7 @@ Describe 'Assert-BlockString' {
             '' | Assert-BlockString -Expected @()
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty string as Expected' {
@@ -104,7 +131,7 @@ Describe 'Assert-BlockString' {
             '' | Assert-BlockString -Expected ''
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty collection as Actual' {
@@ -112,7 +139,7 @@ Describe 'Assert-BlockString' {
             Assert-BlockString -Actual @() -Expected @()
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to pass empty string as Actual' {
@@ -120,7 +147,7 @@ Describe 'Assert-BlockString' {
             Assert-BlockString -Actual '' -Expected ''
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should not return any hex output' {
@@ -130,7 +157,7 @@ Describe 'Assert-BlockString' {
             Assert-BlockString -Actual $mockLongString -Expected $mockLongString -NoHexOutput
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should be able to be called using its alias' {
@@ -140,7 +167,7 @@ Describe 'Assert-BlockString' {
             'Test string' | Should-BeBlockString -Expected $mockExpected
         }
 
-        { & $scriptBlock } | Should -Not -Throw
+        $null = & $scriptBlock
     }
 
     It 'Should throw the correct error message when Actual is not a string' {
