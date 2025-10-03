@@ -61,6 +61,7 @@ function Assert-ObjectProperty
 {
     [Alias('Should-HaveProperty')]
     [CmdletBinding(DefaultParameterSetName = 'AssertProperty')]
+    [OutputType()]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param

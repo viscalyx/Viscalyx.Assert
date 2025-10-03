@@ -54,6 +54,7 @@ function Assert-ObjectMethod
 {
     [Alias('Should-HaveMethod')]
     [CmdletBinding()]
+    [OutputType()]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param

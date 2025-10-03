@@ -54,6 +54,8 @@
 function Assert-BlockString
 {
     [Alias('Should-BeBlockString')]
+    [CmdletBinding()]
+    [OutputType()]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param
