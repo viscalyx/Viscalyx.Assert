@@ -55,22 +55,26 @@ function Assert-BlockString
 {
     [Alias('Should-BeBlockString')]
     [CmdletBinding()]
-    [OutputType()]
+    [OutputType([System.Boolean])]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
     param
     (
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
+        [System.Object]
         $Actual,
 
         [Parameter(Position = 0, Mandatory = $true)]
+        [System.Object]
         $Expected,
 
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [System.String]
         $Because,
 
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [System.String]
         $Highlight = '31m',
 
