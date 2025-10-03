@@ -20,4 +20,10 @@ ConvertFrom-StringData @'
     Assert_ObjectProperty_ValueMismatch = Expected property '{0}' to have value '{1}', but the actual value was '{2}'.
     # This string is intentionally lower-cased to match the casing of the Pester error message.
     Assert_ObjectProperty_Because = because
+
+    ## New localized strings for Assert-ObjectMethod
+    Assert_ObjectMethod_ActualIsNull = Expected the actual value not to be null, but it was null.
+    Assert_ObjectMethod_MethodNotFound = Expected the object to have method '{0}', but the method was not found.
+    # This string is intentionally lower-cased to match the casing of the Pester error message.
+    Assert_ObjectMethod_Because = because
 '@
