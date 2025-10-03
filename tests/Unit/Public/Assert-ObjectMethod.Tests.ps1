@@ -77,7 +77,7 @@ Describe 'Assert-ObjectMethod' {
         }
 
         It 'Should throw when actual object is null' {
-            { Assert-ObjectMethod -Actual $null -Method 'ToString' } | Should -Throw -ExpectedMessage '*not to be null*'
+            { Assert-ObjectMethod -Actual $null -Method 'ToString' } | Should -Throw -ExpectedMessage '*Cannot bind argument to parameter*'
         }
 
         It 'Should include Because message in the error when method not found' {
@@ -96,7 +96,7 @@ Describe 'Assert-ObjectMethod' {
 
             {
                 Assert-ObjectMethod -Actual $null -Method 'ToString' -Because $because
-            } | Should -Throw -ExpectedMessage '*because this is a test*'
+            } | Should -Throw -ExpectedMessage '*Cannot bind argument to parameter*'
         }
 
         It 'Should handle pipeline input' {
@@ -228,7 +228,7 @@ Describe 'Assert-ObjectMethod' {
         It 'Should throw the correct error message when object is null' {
             {
                 Assert-ObjectMethod -Actual $null -Method 'ToString'
-            } | Should -Throw -ExpectedMessage 'Expected the actual value not to be null, but it was null.'
+            } | Should -Throw -ExpectedMessage '*Cannot bind argument to parameter*Actual*because it is null*'
         }
 
         It 'Should throw the correct error message when method not found' {

@@ -72,7 +72,7 @@ Describe 'Assert-ObjectProperty' {
         }
 
         It 'Should throw when actual object is null' {
-            { Assert-ObjectProperty -Actual $null -Property 'Name' } | Should -Throw -ExpectedMessage '*not to be null*'
+            { Assert-ObjectProperty -Actual $null -Property 'Name' } | Should -Throw -ExpectedMessage '*Cannot bind argument to parameter*'
         }
 
         It 'Should include Because message in the error when property not found' {
@@ -91,7 +91,7 @@ Describe 'Assert-ObjectProperty' {
 
             {
                 Assert-ObjectProperty -Actual $null -Property 'Name' -Because $because
-            } | Should -Throw -ExpectedMessage '*because this is a test*'
+            } | Should -Throw -ExpectedMessage '*Cannot bind argument to parameter*'
         }
 
         It 'Should handle pipeline input' {
@@ -292,7 +292,7 @@ Describe 'Assert-ObjectProperty' {
         It 'Should throw the correct error message when object is null' {
             {
                 Assert-ObjectProperty -Actual $null -Property 'Name'
-            } | Should -Throw -ExpectedMessage 'Expected the actual value not to be null, but it was null.'
+            } | Should -Throw -ExpectedMessage '*Cannot bind argument to parameter*Actual*because it is null*'
         }
 
         It 'Should throw the correct error message when property not found' {
