@@ -428,28 +428,6 @@ Describe 'Assert-ObjectProperty' {
     }
 
     Context 'When testing edge cases for uncovered lines' {
-        It 'Should include Because message when null object in pipeline array' {
-            # Use InModuleScope to directly test the code path
-            InModuleScope -ScriptBlock {
-                $hasPipelineInput = $true
-                $Actual = @($null)
-                $Property = 'Name'
-                $Because = 'testing null handling'
-
-                {
-                    foreach ($currentObject in $Actual) {
-                        if ($null -eq $currentObject) {
-                            $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
-                            if ($Because) {
-                                $message += " {0} $Because" -f $script:localizedData.Common_WordBecause
-                            }
-                            throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                        }
-                    }
-                } | Should -Throw -ExpectedMessage '*because testing null handling*'
-            }
-        }
-
         It 'Should include Because message when property not found in pipeline' {
             $testObject = [PSCustomObject]@{ Name = 'Test' }
 
@@ -480,26 +458,6 @@ Describe 'Assert-ObjectProperty' {
             {
                 Assert-ObjectProperty -Actual $testObject -Property 'Name' -Value 'Expected' -Because 'custom reason'
             } | Should -Throw -ExpectedMessage '*because custom reason*'
-        }
-
-        It 'Should hit non-pipeline null check with Because parameter' {
-            # Test the non-pipeline null check path (lines 216-223)
-            InModuleScope -ScriptBlock {
-                $hasPipelineInput = $false
-                $Actual = $null
-                $Property = 'Name'
-                $Because = 'testing single object null'
-
-                {
-                    if ($null -eq $Actual) {
-                        $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
-                        if ($Because) {
-                            $message += " {0} $Because" -f $script:localizedData.Common_WordBecause
-                        }
-                        throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                    }
-                } | Should -Throw -ExpectedMessage '*because testing single object null*'
-            }
         }
 
         It 'Should use ContainsKey for hashtable property check in pipeline' {

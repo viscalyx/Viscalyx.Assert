@@ -308,42 +308,6 @@ Describe 'Assert-ObjectMethod' {
     }
 
     Context 'When testing edge cases for uncovered lines' {
-        It 'Should include Because message when null object in pipeline array' {
-            # Use Select-Object to inject null into the pipeline
-            $testArray = @(
-                [PSCustomObject]@{ Name = 'First'; Value = 1 },
-                $null,
-                [PSCustomObject]@{ Name = 'Third'; Value = 3 }
-            )
-
-            {
-                # When piping an array that contains null, it should detect and report it
-                foreach ($item in $testArray) {
-                    if ($null -ne $item) {
-                        $item | Assert-ObjectMethod -Method 'ToString'
-                    } else {
-                        # Manually invoke the null check path by calling with pipeline flag set
-                        InModuleScope -ScriptBlock {
-                            $hasPipelineInput = $true
-                            $Actual = @($null)
-                            $Method = 'ToString'
-                            $Because = 'testing null handling'
-
-                            foreach ($currentObject in $Actual) {
-                                if ($null -eq $currentObject) {
-                                    $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
-                                    if ($Because) {
-                                        $message += " {0} $Because" -f $script:localizedData.Common_WordBecause
-                                    }
-                                    throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                                }
-                            }
-                        }
-                    }
-                }
-            } | Should -Throw -ExpectedMessage '*because testing null handling*'
-        }
-
         It 'Should include Because message when method not found in pipeline' {
             $testObject = [PSCustomObject]@{ Name = 'Test' }
 
@@ -358,26 +322,6 @@ Describe 'Assert-ObjectMethod' {
             {
                 Assert-ObjectMethod -Actual $testObject -Method 'NonExistentMethod' -Because 'custom reason'
             } | Should -Throw -ExpectedMessage '*because custom reason*'
-        }
-
-        It 'Should hit non-pipeline null check with Because parameter' {
-            # Test the non-pipeline null check path (lines 163-170)
-            InModuleScope -ScriptBlock {
-                $hasPipelineInput = $false
-                $Actual = $null
-                $Method = 'ToString'
-                $Because = 'testing single object null'
-
-                {
-                    if ($null -eq $Actual) {
-                        $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
-                        if ($Because) {
-                            $message += " {0} $Because" -f $script:localizedData.Common_WordBecause
-                        }
-                        throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                    }
-                } | Should -Throw -ExpectedMessage '*because testing single object null*'
-            }
         }
 
         It 'Should find method via PSObject.Methods when it exists (line 129)' {
