@@ -49,7 +49,17 @@ function New-AssertionError
 
     if ($Because)
     {
-        $Message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
+        # Insert 'because <reason>' before ', but' to follow Pester's pattern:
+        # "Expected <value>, because <reason>, but got <actual>"
+        if ($Message -match ',\s+but\s+')
+        {
+            $Message = $Message -replace ',\s+but\s+', (", {0} $Because, but " -f $script:localizedData.Common_WordBecause)
+        }
+        else
+        {
+            # Fallback: append at the end if no ', but' pattern found
+            $Message += " {0} $Because" -f $script:localizedData.Common_WordBecause
+        }
     }
 
     $errorRecord = [Pester.Factory]::CreateShouldErrorRecord(

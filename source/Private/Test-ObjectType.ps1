@@ -65,7 +65,7 @@ function Test-ObjectType
     }
     catch
     {
-        $errorMessage = $script:localizedData.Test_ObjectType_GetTypeFailed -f $script:localizedData.Test_ObjectType_Actual
+        $errorMessage = $script:localizedData.Test_ObjectType_GetTypeFailed -f $script:localizedData.Common_WordActual
 
         $PSCmdlet.ThrowTerminatingError(
             [System.Management.Automation.ErrorRecord]::new(
@@ -83,7 +83,7 @@ function Test-ObjectType
     }
     catch
     {
-        $errorMessage = $script:localizedData.Test_ObjectType_GetTypeFailed -f $script:localizedData.Test_ObjectType_Expected
+        $errorMessage = $script:localizedData.Test_ObjectType_GetTypeFailed -f $script:localizedData.Common_WordExpected
 
         $PSCmdlet.ThrowTerminatingError(
             [System.Management.Automation.ErrorRecord]::new(

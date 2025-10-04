@@ -112,17 +112,12 @@ function Assert-BlockString
         {
             $message = $script:localizedData.Assert_BlockString_StringsNotEqual
 
-            if ($Because)
-            {
-                $message += " {0} $Because" -f $script:localizedData.Assert_BlockString_StringsNotEqual_Because
-            }
-
             $message += "{0}`r`n " -f $script:localizedData.Assert_BlockString_Difference
 
             $message += Out-Difference -Reference $Expected -Difference $Actual -ReferenceLabel 'Expected:' -DifferenceLabel 'But was:' -HighlightStart:$Highlight -NoHexOutput:$NoHexOutput.IsPresent |
                 ForEach-Object -Process { "`e[0m$_`r`n" }
         }
 
-        throw [Pester.Factory]::CreateShouldErrorRecord($Message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+        throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
     }
 }

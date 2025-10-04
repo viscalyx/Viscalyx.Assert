@@ -36,6 +36,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added parameter `Each` to opt-in for element-by-element checking when
     passing arrays via pipeline. Without this parameter, the command now checks
     methods on the array object itself.
+- `Assert-BlockString`
+  - Refactored to use the `New-AssertionError` private function for consistent
+    error handling across all assertion commands.
+- `New-AssertionError`
+  - Updated to follow Pester's error message pattern by inserting the `Because`
+    clause before `, but` in error messages (e.g., "Expected \<value\>, because
+    \<reason\>, but got \<actual\>").
+- Localized strings have been reorganized to consolidate common reusable words
+  (like "because", "actual", and "expected") into a dedicated "Common localized
+  strings" section with a consistent `Common_Word*` naming pattern, reducing
+  duplication across command-specific string keys.
 
 ## [1.1.0] - 2025-10-03
 

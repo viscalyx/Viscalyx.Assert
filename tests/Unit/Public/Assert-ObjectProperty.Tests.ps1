@@ -442,7 +442,7 @@ Describe 'Assert-ObjectProperty' {
                         if ($null -eq $currentObject) {
                             $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
                             if ($Because) {
-                                $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
+                                $message += " {0} $Because" -f $script:localizedData.Common_WordBecause
                             }
                             throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
                         }
@@ -495,7 +495,7 @@ Describe 'Assert-ObjectProperty' {
                     if ($null -eq $Actual) {
                         $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
                         if ($Because) {
-                            $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
+                            $message += " {0} $Because" -f $script:localizedData.Common_WordBecause
                         }
                         throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
                     }
