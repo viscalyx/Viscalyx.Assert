@@ -18,6 +18,7 @@ ConvertFrom-StringData @'
     Assert_ObjectProperty_ActualIsNull = Expected the actual value not to be null, but it was null.
     Assert_ObjectProperty_PropertyNotFound = Expected the object to have property '{0}', but the property was not found.
     Assert_ObjectProperty_ValueMismatch = Expected property '{0}' to have value '{1}', but the actual value was '{2}'.
+    Assert_ObjectProperty_TypeMismatch = Expected property '{0}' to have type '{1}', but the actual type was '{2}'.
     # This string is intentionally lower-cased to match the casing of the Pester error message.
     Assert_ObjectProperty_Because = because
 
@@ -26,4 +27,9 @@ ConvertFrom-StringData @'
     Assert_ObjectMethod_MethodNotFound = Expected the object to have method '{0}', but the method was not found.
     # This string is intentionally lower-cased to match the casing of the Pester error message.
     Assert_ObjectMethod_Because = because
+
+    ## New localized strings for Test-ObjectType
+    Test_ObjectType_GetTypeFailed = Failed to get type information for the {0} value. The object may not support the GetType() method. Use the -NoTypeCheck parameter to skip strict type checking. (TOT0001)
+    Test_ObjectType_Actual = actual
+    Test_ObjectType_Expected = expected
 '@

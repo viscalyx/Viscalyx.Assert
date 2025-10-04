@@ -47,11 +47,11 @@ Describe 'Assert-ObjectProperty' {
         It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
             @{
                 ExpectedParameterSetName = 'AssertProperty'
-                ExpectedParameters = '[-Property] <string> [-Actual] <Object> [-Because <string>] [-Each] [<CommonParameters>]'
+                ExpectedParameters = '[-Property] <string> [-Actual] <Object> [-Because <string>] [-Each] [-NoTypeCheck] [<CommonParameters>]'
             }
             @{
                 ExpectedParameterSetName = 'AssertValue'
-                ExpectedParameters = '[-Property] <string> [-Value] <Object> [-Actual] <Object> [-Because <string>] [-Each] [<CommonParameters>]'
+                ExpectedParameters = '[-Property] <string> [-Value] <Object> [-Actual] <Object> [-Because <string>] [-Each] [-NoTypeCheck] [<CommonParameters>]'
             }
         ) {
             $result = (Get-Command -Name 'Assert-ObjectProperty').ParameterSets |
@@ -262,13 +262,15 @@ Describe 'Assert-ObjectProperty' {
             $null = Assert-ObjectProperty -Actual $testObject -Property 'ArrayValue' -Value @(1, 2, 3)
         }
 
-        It 'Should handle type coercion appropriately' {
+        It 'Should fail with strict type checking for different types by default' {
             $testObject = [PSCustomObject]@{
                 NumberValue = 123
             }
 
-            # PowerShell's -eq operator handles type coercion
-            $null = Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123'
+            # Strict type checking (default): int 123 should not equal string '123'
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123'
+            } | Should -Throw -ExpectedMessage "*Expected property 'NumberValue' to have type*"
         }
 
         It 'Should handle pipeline input with value assertion' {
@@ -278,6 +280,68 @@ Describe 'Assert-ObjectProperty' {
             }
 
             $null = $testObject | Assert-ObjectProperty -Property 'Name' -Value 'Test'
+        }
+    }
+
+    Context 'When using NoTypeCheck parameter' {
+        It 'Should pass when comparing number to string with -NoTypeCheck' {
+            $testObject = [PSCustomObject]@{
+                NumberValue = 123
+            }
+
+            # Lenient type checking: PowerShell's -eq performs type coercion
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123' -NoTypeCheck
+        }
+
+        It 'Should fail when comparing number to string without -NoTypeCheck (strict)' {
+            $testObject = [PSCustomObject]@{
+                NumberValue = 123
+            }
+
+            # Strict type checking (default): int 123 should not equal string '123'
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123'
+            } | Should -Throw -ExpectedMessage "*Expected property 'NumberValue' to have type*"
+        }
+
+        It 'Should pass when comparing different numeric types with -NoTypeCheck' {
+            $testObject = [PSCustomObject]@{
+                IntValue = [int]42
+            }
+
+            # Lenient type checking: int 42 equals double 42.0 via type coercion
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'IntValue' -Value ([double]42.0) -NoTypeCheck
+        }
+
+        It 'Should fail when comparing different numeric types without -NoTypeCheck (strict)' {
+            $testObject = [PSCustomObject]@{
+                IntValue = [int]42
+            }
+
+            # Strict type checking (default): [int]42 should not equal [double]42.0
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'IntValue' -Value ([double]42.0)
+            } | Should -Throw -ExpectedMessage "*Expected property 'IntValue' to have type*"
+        }
+
+        It 'Should work with -NoTypeCheck and Each parameter' {
+            $testObjects = @(
+                [PSCustomObject]@{ NumberValue = 123 }
+                [PSCustomObject]@{ NumberValue = 456 }
+            )
+
+            # Both objects should pass with lenient type checking
+            $null = Assert-ObjectProperty -Actual $testObjects -Property 'NumberValue' -Value '123' -Each -NoTypeCheck
+            $null = Assert-ObjectProperty -Actual $testObjects -Property 'NumberValue' -Value '456' -Each -NoTypeCheck
+        }
+
+        It 'Should work with -NoTypeCheck via pipeline' {
+            $testObject = [PSCustomObject]@{
+                NumberValue = 123
+            }
+
+            # Pipeline with lenient type checking
+            $null = $testObject | Assert-ObjectProperty -Property 'NumberValue' -Value '123' -NoTypeCheck
         }
     }
 
