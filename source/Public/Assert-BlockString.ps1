@@ -28,6 +28,14 @@
     .PARAMETER NoHexOutput
         Specifies whether to omit the hex columns and output only the character groups.
 
+    .INPUTS
+        System.Object
+
+        Accepts strings or arrays of strings via the pipeline.
+
+    .OUTPUTS
+        None. This command does not return any output on success.
+
     .EXAMPLE
         PS> Assert-BlockString -Actual 'hello', 'world' -Expected 'Hello', 'World'
 

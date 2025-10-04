@@ -13,6 +13,9 @@
     .PARAMETER ExpectedValue
         The expected value to compare the type against.
 
+    .INPUTS
+        None. This function does not accept pipeline input.
+
     .OUTPUTS
         System.Boolean
 

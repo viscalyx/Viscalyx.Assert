@@ -17,6 +17,9 @@
         The invocation information from the calling command, used to populate
         the error record with script name, line number, and line content.
 
+    .INPUTS
+        None. This function does not accept pipeline input.
+
     .OUTPUTS
         System.Management.Automation.ErrorRecord
 

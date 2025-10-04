@@ -13,6 +13,9 @@
     .PARAMETER MethodName
         The name of the method to check for.
 
+    .INPUTS
+        None. This function does not accept pipeline input.
+
     .OUTPUTS
         System.Boolean
 

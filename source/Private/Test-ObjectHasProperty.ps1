@@ -13,6 +13,9 @@
     .PARAMETER PropertyName
         The name of the property to check for.
 
+    .INPUTS
+        None. This function does not accept pipeline input.
+
     .OUTPUTS
         System.Boolean
 
