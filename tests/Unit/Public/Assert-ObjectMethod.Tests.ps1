@@ -327,7 +327,7 @@ Describe 'Assert-ObjectMethod' {
         It 'Should find method via PSObject.Methods when it exists (line 129)' {
             # Create an object where Get-Member fails but PSObject.Methods works
             # Mock Get-Member to return null so it falls through to PSObject.Methods check
-            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { return $null } -ParameterFilter { $MemberType -match 'Method' }
+            Mock -CommandName 'Get-Member' -MockWith { return $null } -ParameterFilter { $MemberType -match 'Method' }
 
             $testObject = [PSCustomObject]@{ Name = 'Test' }
             $testObject | Add-Member -MemberType ScriptMethod -Name 'TestMethod' -Value { return 'Success' }
@@ -366,7 +366,7 @@ Describe 'Assert-ObjectMethod' {
             $testObject = [TestClass]@{ Name = 'Test' }
 
             # Mock PSObject.Methods to throw an exception to trigger outer catch (line 142)
-            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { throw 'PSObject access failed' }
+            Mock -CommandName 'Get-Member' -MockWith { throw 'PSObject access failed' }
 
             { Assert-ObjectMethod -Actual $testObject -Method 'NonExistentMethod' } | Should -Throw
         }

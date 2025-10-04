@@ -513,7 +513,7 @@ Describe 'Assert-ObjectProperty' {
             $testObject = [PSCustomObject]@{ Name = 'Test' }
 
             # Mock Get-Member to return $null to trigger line 151 ($hasProperty = $false)
-            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { return $null }
+            Mock -CommandName 'Get-Member' -MockWith { return $null }
 
             { Assert-ObjectProperty -Actual $testObject -Property 'NonExistentProperty' } | Should -Throw
         }
