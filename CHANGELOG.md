@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added parameter `Each` to opt-in for element-by-element checking when
     passing arrays via pipeline. Without this parameter, the command now checks
     properties on the array object itself (e.g., `Count`, `Length`).
+- `Assert-ObjectMethod`
+  - Added parameter `Each` to opt-in for element-by-element checking when
+    passing arrays via pipeline. Without this parameter, the command now checks
+    methods on the array object itself.
 
 ## [1.1.0] - 2025-10-03
 

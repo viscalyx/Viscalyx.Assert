@@ -47,7 +47,7 @@ Describe 'Assert-ObjectMethod' {
         It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
             @{
                 ExpectedParameterSetName = '__AllParameterSets'
-                ExpectedParameters = '[-Method] <string> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+                ExpectedParameters = '[-Method] <string> [-Actual] <Object> [-Because <string>] [-Each] [<CommonParameters>]'
             }
         ) {
             $result = (Get-Command -Name 'Assert-ObjectMethod').ParameterSets |
@@ -132,15 +132,15 @@ Describe 'Assert-ObjectMethod' {
             $null = $testString | Assert-ObjectMethod -Method 'ToString'
         }
 
-        It 'Should handle multiple objects in pipeline and check all of them' {
+        It 'Should handle multiple objects in pipeline and check all of them with Each parameter' {
             $testString1 = 'Hello'
             $testString2 = 'World'
 
             # Both strings have 'ToString' method, so this should pass
-            $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString'
+            $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString' -Each
         }
 
-        It 'Should throw when one of the pipeline objects is missing the method' {
+        It 'Should throw when one of the pipeline objects is missing the method with Each parameter' {
             $testObject1 = [PSCustomObject]@{
                 Name = 'Test1'
             }
@@ -152,7 +152,7 @@ Describe 'Assert-ObjectMethod' {
 
             # First object doesn't have 'CustomMethod', so this should fail
             {
-                $testObject1, $testObject2 | Assert-ObjectMethod -Method 'CustomMethod'
+                $testObject1, $testObject2 | Assert-ObjectMethod -Method 'CustomMethod' -Each
             } | Should -Throw -ExpectedMessage "*method 'CustomMethod'*"
         }
     }
@@ -425,6 +425,95 @@ Describe 'Assert-ObjectMethod' {
             Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { throw 'PSObject access failed' }
 
             { Assert-ObjectMethod -Actual $testObject -Method 'NonExistentMethod' } | Should -Throw
+        }
+    }
+
+    Context 'When using the Each parameter' {
+        It 'Should check array method existence by default without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check that the array has GetEnumerator method, not iterate through elements
+            $null = Assert-ObjectMethod -Actual $array -Method 'GetEnumerator'
+        }
+
+        It 'Should check array Count property when passed via pipeline without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's GetType method, not iterate through elements
+            $null = $array | Assert-ObjectMethod -Method 'GetType'
+        }
+
+        It 'Should iterate through each element when Each parameter is specified' {
+            $testString1 = 'Hello'
+            $testString2 = 'World'
+
+            # Should check that each string has 'ToString' method
+            $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString' -Each
+        }
+
+        It 'Should throw when one element is missing the method with Each parameter' {
+            $testObject1 = [PSCustomObject]@{
+                Name = 'Object1'
+            }
+            $testObject1 | Add-Member -MemberType ScriptMethod -Name 'CustomMethod' -Value { 'test' }
+            
+            $testObject2 = [PSCustomObject]@{
+                Name = 'Object2'
+            }
+
+            {
+                $testObject1, $testObject2 | Assert-ObjectMethod -Method 'CustomMethod' -Each
+            } | Should -Throw -ExpectedMessage "*method 'CustomMethod'*"
+        }
+
+        It 'Should not iterate when Each is not specified even with pipeline array' {
+            $array = @(
+                [PSCustomObject]@{ Name = 'Item1' }
+                [PSCustomObject]@{ Name = 'Item2' }
+            )
+
+            # Should check the array's GetHashCode method, not iterate
+            $null = $array | Assert-ObjectMethod -Method 'GetHashCode'
+        }
+
+        It 'Should work with Each parameter and Because parameter' {
+            $testObject1 = [PSCustomObject]@{ Name = 'Test1' }
+            $testObject2 = [PSCustomObject]@{ Name = 'Test2' }
+
+            {
+                @($testObject1, $testObject2) | Assert-ObjectMethod -Method 'NonExistent' -Each -Because 'testing Each with Because'
+            } | Should -Throw -ExpectedMessage '*because testing Each with Because*'
+        }
+
+        It 'Should only apply Each behavior when explicitly specified' {
+            # Test that Each is opt-in, not automatic for arrays
+            $objects = @('string1', 'string2')
+
+            # Without Each - checks array methods
+            $null = Assert-ObjectMethod -Actual $objects -Method 'GetEnumerator'
+            $null = Assert-ObjectMethod -Actual $objects -Method 'GetType'
+
+            # With Each - checks element methods
+            $null = $objects | Assert-ObjectMethod -Method 'ToString' -Each
+        }
+
+        It 'Should require pipeline input for Each parameter to work' {
+            # Each parameter only applies to pipeline input
+            $array = @('item1', 'item2')
+
+            # When not piped, Each should not iterate (it's not pipeline input)
+            # This tests the condition: $Each.IsPresent -and $hasPipelineInput
+            $null = Assert-ObjectMethod -Actual $array -Method 'GetType' -Each
+        }
+
+        It 'Should work with arrays of different object types using Each' {
+            $obj1 = [PSCustomObject]@{ Value = 1 }
+            $obj1 | Add-Member -MemberType ScriptMethod -Name 'DoSomething' -Value { $this.Value }
+            
+            $obj2 = [PSCustomObject]@{ Value = 2 }
+            $obj2 | Add-Member -MemberType ScriptMethod -Name 'DoSomething' -Value { $this.Value }
+
+            $null = $obj1, $obj2 | Assert-ObjectMethod -Method 'DoSomething' -Each
         }
     }
 }

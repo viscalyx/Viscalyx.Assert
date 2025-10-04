@@ -18,13 +18,20 @@
     .PARAMETER Because
         An optional reason or explanation for the assertion.
 
+    .PARAMETER Each
+        When specified and the input is an array, asserts that each element in
+        the array has the specified method. Without this parameter, the assertion
+        checks the array object itself.
+
     .INPUTS
         System.Object
-            Accepts any object via the pipeline for method inspection.
+
+        Accepts any object via the pipeline for method inspection.
 
     .OUTPUTS
         None
-            This command does not return any output on success.
+
+        This command does not return any output on success.
 
     .EXAMPLE
         PS> Assert-ObjectMethod -Actual $myObject -Method 'ToString'
@@ -49,6 +56,12 @@
 
         This example verifies that a collection object has an 'Add' method,
         which is useful when you need to ensure you can add items to a collection.
+
+    .EXAMPLE
+        PS> $arrayOfObjects | Assert-ObjectMethod -Method 'ToString' -Each
+
+        This example asserts that each object in the piped array has a 'ToString'
+        method. The `-Each` parameter enables element-by-element checking.
 #>
 function Assert-ObjectMethod
 {
@@ -71,7 +84,11 @@ function Assert-ObjectMethod
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Because
+        $Because,
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Each
     )
 
     $hasPipelineInput = $MyInvocation.ExpectingInput
@@ -81,8 +98,8 @@ function Assert-ObjectMethod
         $Actual = @($local:Input)
     }
 
-    # If multiple objects were passed via pipeline, iterate through each one
-    if ($hasPipelineInput -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
+    # If Each is specified and we have an array, iterate through each element
+    if ($Each.IsPresent -and $hasPipelineInput -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
     {
         foreach ($currentObject in $Actual)
         {
