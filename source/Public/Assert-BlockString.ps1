@@ -28,6 +28,14 @@
     .PARAMETER NoHexOutput
         Specifies whether to omit the hex columns and output only the character groups.
 
+    .INPUTS
+        System.Object
+
+        Accepts strings or arrays of strings via the pipeline.
+
+    .OUTPUTS
+        None. This command does not return any output on success.
+
     .EXAMPLE
         PS> Assert-BlockString -Actual 'hello', 'world' -Expected 'Hello', 'World'
 
@@ -112,17 +120,12 @@ function Assert-BlockString
         {
             $message = $script:localizedData.Assert_BlockString_StringsNotEqual
 
-            if ($Because)
-            {
-                $message += " {0} $Because" -f $script:localizedData.Assert_BlockString_StringsNotEqual_Because
-            }
-
             $message += "{0}`r`n " -f $script:localizedData.Assert_BlockString_Difference
 
             $message += Out-Difference -Reference $Expected -Difference $Actual -ReferenceLabel 'Expected:' -DifferenceLabel 'But was:' -HighlightStart:$Highlight -NoHexOutput:$NoHexOutput.IsPresent |
                 ForEach-Object -Process { "`e[0m$_`r`n" }
         }
 
-        throw [Pester.Factory]::CreateShouldErrorRecord($Message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+        throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
     }
 }

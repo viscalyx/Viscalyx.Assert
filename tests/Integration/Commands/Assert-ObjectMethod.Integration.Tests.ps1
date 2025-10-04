@@ -238,17 +238,13 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
         }
 
         It 'Should validate that each service in collection has GetInfo method using Should-HaveMethod' {
-            foreach ($service in $serviceCollection)
-            {
-                $service | Should-HaveMethod -Method 'GetInfo'
-            }
+            # Use -Each parameter to validate methods on each element in the collection
+            $serviceCollection | Should-HaveMethod -Method 'GetInfo' -Each
         }
 
         It 'Should validate that each service in collection has IsType method using Should-HaveMethod' {
-            foreach ($service in $serviceCollection)
-            {
-                $service | Should-HaveMethod -Method 'IsType'
-            }
+            # Use -Each parameter to validate methods on each element in the collection
+            $serviceCollection | Should-HaveMethod -Method 'IsType' -Each
         }
 
         It 'Should validate methods on ArrayList using Should-HaveMethod' {
@@ -394,6 +390,150 @@ Describe 'Assert-ObjectMethod' -Tag @('Integration') {
 
             $postResult = $mockApiClient.Post('/users', @{ Name = 'Test User' })
             $postResult.Status | Should-Be 'Created'
+        }
+    }
+
+    Context 'Testing Each parameter for array element validation' {
+        BeforeAll {
+            # Create array of objects with methods
+            $script:serviceObjects = @(
+                [PSCustomObject]@{ Name = 'Service1'; Status = 'Running' }
+                [PSCustomObject]@{ Name = 'Service2'; Status = 'Running' }
+                [PSCustomObject]@{ Name = 'Service3'; Status = 'Running' }
+            )
+
+            # Add methods to each service
+            foreach ($service in $script:serviceObjects)
+            {
+                $service | Add-Member -MemberType ScriptMethod -Name 'Start' -Value {
+                    $this.Status = 'Running'
+                }
+                $service | Add-Member -MemberType ScriptMethod -Name 'Stop' -Value {
+                    $this.Status = 'Stopped'
+                }
+                $service | Add-Member -MemberType ScriptMethod -Name 'GetStatus' -Value {
+                    return $this.Status
+                }
+            }
+        }
+
+        It 'Should verify array methods without Each parameter' {
+            # Without -Each, should check methods on the array itself
+            $script:serviceObjects | Should-HaveMethod -Method 'GetType'
+            $script:serviceObjects | Should-HaveMethod -Method 'GetEnumerator'
+        }
+
+        It 'Should verify each element has Start method with Each parameter' {
+            # With -Each, should check each element in the array
+            $script:serviceObjects | Should-HaveMethod -Method 'Start' -Each
+        }
+
+        It 'Should verify each element has Stop method using Each' {
+            $script:serviceObjects | Should-HaveMethod -Method 'Stop' -Each
+        }
+
+        It 'Should verify each element has GetStatus method using Each' {
+            $script:serviceObjects | Should-HaveMethod -Method 'GetStatus' -Each
+        }
+
+        It 'Should fail when checking for non-existent method on elements with Each' {
+            {
+                $script:serviceObjects | Should-HaveMethod -Method 'NonExistentMethod' -Each
+            } | Should -Throw
+        }
+
+        It 'Should work with Each parameter on string array' {
+            $stringArray = @('Hello', 'World', 'Test')
+
+            # Each string should have ToString, Substring, etc.
+            $stringArray | Should-HaveMethod -Method 'ToString' -Each
+            $stringArray | Should-HaveMethod -Method 'Substring' -Each
+            $stringArray | Should-HaveMethod -Method 'Contains' -Each
+        }
+
+        It 'Should validate array method vs element method distinction' {
+            $testArray = @(
+                [PSCustomObject]@{ Value = 1 }
+                [PSCustomObject]@{ Value = 2 }
+            )
+
+            foreach ($obj in $testArray)
+            {
+                $obj | Add-Member -MemberType ScriptMethod -Name 'GetValue' -Value { return $this.Value }
+            }
+
+            # Without -Each: check array methods
+            $testArray | Should-HaveMethod -Method 'GetType'
+
+            # With -Each: check element methods
+            $testArray | Should-HaveMethod -Method 'GetValue' -Each
+        }
+
+        It 'Should work with Each and Because parameters together' {
+            $handlers = @(
+                [PSCustomObject]@{ Name = 'Handler1' }
+                [PSCustomObject]@{ Name = 'Handler2' }
+            )
+
+            foreach ($handler in $handlers)
+            {
+                $handler | Add-Member -MemberType ScriptMethod -Name 'Handle' -Value { return 'Handled' }
+            }
+
+            $handlers | Should-HaveMethod -Method 'Handle' -Each -Because 'all handlers must implement the Handle method'
+        }
+
+        It 'Should validate custom class instances with Each parameter' {
+            class Worker
+            {
+                [string]$Name
+
+                Worker([string]$name)
+                {
+                    $this.Name = $name
+                }
+
+                [void] DoWork()
+                {
+                    Write-Verbose "Working: $($this.Name)"
+                }
+
+                [string] GetName()
+                {
+                    return $this.Name
+                }
+            }
+
+            $workers = @(
+                [Worker]::new('Worker1')
+                [Worker]::new('Worker2')
+                [Worker]::new('Worker3')
+            )
+
+            # All workers should have DoWork and GetName methods
+            $workers | Should-HaveMethod -Method 'DoWork' -Each
+            $workers | Should-HaveMethod -Method 'GetName' -Each
+        }
+
+        It 'Should work with hashtable array elements' {
+            $hashtables = @(
+                @{ Key1 = 'Value1' }
+                @{ Key2 = 'Value2' }
+                @{ Key3 = 'Value3' }
+            )
+
+            # All hashtables should have Add, Remove, ContainsKey methods
+            $hashtables | Should-HaveMethod -Method 'Add' -Each
+            $hashtables | Should-HaveMethod -Method 'Remove' -Each
+            $hashtables | Should-HaveMethod -Method 'ContainsKey' -Each
+        }
+
+        It 'Should validate methods on ProcessInfo array with Each' {
+            $processes = Get-Process | Select-Object -First 3
+
+            # Each process should have Kill, WaitForExit, etc.
+            $processes | Should-HaveMethod -Method 'ToString' -Each
+            $processes | Should-HaveMethod -Method 'GetHashCode' -Each
         }
     }
 }

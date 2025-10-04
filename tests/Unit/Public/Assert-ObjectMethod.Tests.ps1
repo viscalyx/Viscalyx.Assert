@@ -24,13 +24,13 @@ BeforeDiscovery {
 }
 
 BeforeAll {
-    $script:dscModuleName = 'Viscalyx.Assert'
+    $script:moduleName = 'Viscalyx.Assert'
 
-    Import-Module -Name $script:dscModuleName -Force -ErrorAction 'Stop'
+    Import-Module -Name $script:moduleName -Force -ErrorAction 'Stop'
 
-    $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:dscModuleName
-    $PSDefaultParameterValues['Mock:ModuleName'] = $script:dscModuleName
-    $PSDefaultParameterValues['Should:ModuleName'] = $script:dscModuleName
+    $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:moduleName
+    $PSDefaultParameterValues['Mock:ModuleName'] = $script:moduleName
+    $PSDefaultParameterValues['Should:ModuleName'] = $script:moduleName
 }
 
 AfterAll {
@@ -39,7 +39,7 @@ AfterAll {
     $PSDefaultParameterValues.Remove('Should:ModuleName')
 
     # Unload the module being tested so that it doesn't impact any other tests.
-    Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
+    Get-Module -Name $script:moduleName -All | Remove-Module -Force
 }
 
 Describe 'Assert-ObjectMethod' {
@@ -47,7 +47,7 @@ Describe 'Assert-ObjectMethod' {
         It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
             @{
                 ExpectedParameterSetName = '__AllParameterSets'
-                ExpectedParameters = '[-Method] <string> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+                ExpectedParameters = '[-Method] <string> [-Actual] <Object> [-Because <string>] [-Each] [<CommonParameters>]'
             }
         ) {
             $result = (Get-Command -Name 'Assert-ObjectMethod').ParameterSets |
@@ -132,15 +132,15 @@ Describe 'Assert-ObjectMethod' {
             $null = $testString | Assert-ObjectMethod -Method 'ToString'
         }
 
-        It 'Should handle multiple objects in pipeline and check all of them' {
+        It 'Should handle multiple objects in pipeline and check all of them with Each parameter' {
             $testString1 = 'Hello'
             $testString2 = 'World'
 
             # Both strings have 'ToString' method, so this should pass
-            $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString'
+            $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString' -Each
         }
 
-        It 'Should throw when one of the pipeline objects is missing the method' {
+        It 'Should throw when one of the pipeline objects is missing the method with Each parameter' {
             $testObject1 = [PSCustomObject]@{
                 Name = 'Test1'
             }
@@ -152,7 +152,7 @@ Describe 'Assert-ObjectMethod' {
 
             # First object doesn't have 'CustomMethod', so this should fail
             {
-                $testObject1, $testObject2 | Assert-ObjectMethod -Method 'CustomMethod'
+                $testObject1, $testObject2 | Assert-ObjectMethod -Method 'CustomMethod' -Each
             } | Should -Throw -ExpectedMessage "*method 'CustomMethod'*"
         }
     }
@@ -308,42 +308,6 @@ Describe 'Assert-ObjectMethod' {
     }
 
     Context 'When testing edge cases for uncovered lines' {
-        It 'Should include Because message when null object in pipeline array' {
-            # Use Select-Object to inject null into the pipeline
-            $testArray = @(
-                [PSCustomObject]@{ Name = 'First'; Value = 1 },
-                $null,
-                [PSCustomObject]@{ Name = 'Third'; Value = 3 }
-            )
-
-            {
-                # When piping an array that contains null, it should detect and report it
-                foreach ($item in $testArray) {
-                    if ($null -ne $item) {
-                        $item | Assert-ObjectMethod -Method 'ToString'
-                    } else {
-                        # Manually invoke the null check path by calling with pipeline flag set
-                        InModuleScope -ScriptBlock {
-                            $hasPipelineInput = $true
-                            $Actual = @($null)
-                            $Method = 'ToString'
-                            $Because = 'testing null handling'
-                            
-                            foreach ($currentObject in $Actual) {
-                                if ($null -eq $currentObject) {
-                                    $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
-                                    if ($Because) {
-                                        $message += " {0} $Because" -f $script:localizedData.Assert_ObjectMethod_Because
-                                    }
-                                    throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                                }
-                            }
-                        }
-                    }
-                }
-            } | Should -Throw -ExpectedMessage '*because testing null handling*'
-        }
-
         It 'Should include Because message when method not found in pipeline' {
             $testObject = [PSCustomObject]@{ Name = 'Test' }
 
@@ -360,30 +324,10 @@ Describe 'Assert-ObjectMethod' {
             } | Should -Throw -ExpectedMessage '*because custom reason*'
         }
 
-        It 'Should hit non-pipeline null check with Because parameter' {
-            # Test the non-pipeline null check path (lines 163-170)
-            InModuleScope -ScriptBlock {
-                $hasPipelineInput = $false
-                $Actual = $null
-                $Method = 'ToString'
-                $Because = 'testing single object null'
-                
-                {
-                    if ($null -eq $Actual) {
-                        $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
-                        if ($Because) {
-                            $message += " {0} $Because" -f $script:localizedData.Assert_ObjectMethod_Because
-                        }
-                        throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                    }
-                } | Should -Throw -ExpectedMessage '*because testing single object null*'
-            }
-        }
-
         It 'Should find method via PSObject.Methods when it exists (line 129)' {
             # Create an object where Get-Member fails but PSObject.Methods works
             # Mock Get-Member to return null so it falls through to PSObject.Methods check
-            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { return $null } -ParameterFilter { $MemberType -match 'Method' }
+            Mock -CommandName 'Get-Member' -MockWith { return $null } -ParameterFilter { $MemberType -match 'Method' }
 
             $testObject = [PSCustomObject]@{ Name = 'Test' }
             $testObject | Add-Member -MemberType ScriptMethod -Name 'TestMethod' -Value { return 'Success' }
@@ -422,9 +366,97 @@ Describe 'Assert-ObjectMethod' {
             $testObject = [TestClass]@{ Name = 'Test' }
 
             # Mock PSObject.Methods to throw an exception to trigger outer catch (line 142)
-            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { throw 'PSObject access failed' }
+            Mock -CommandName 'Get-Member' -MockWith { throw 'PSObject access failed' }
 
             { Assert-ObjectMethod -Actual $testObject -Method 'NonExistentMethod' } | Should -Throw
+        }
+    }
+
+    Context 'When using the Each parameter' {
+        It 'Should check array method existence by default without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check that the array has GetEnumerator method, not iterate through elements
+            $null = Assert-ObjectMethod -Actual $array -Method 'GetEnumerator'
+        }
+
+        It 'Should check array Count property when passed via pipeline without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's GetType method, not iterate through elements
+            $null = $array | Assert-ObjectMethod -Method 'GetType'
+        }
+
+        It 'Should iterate through each element when Each parameter is specified' {
+            $testString1 = 'Hello'
+            $testString2 = 'World'
+
+            # Should check that each string has 'ToString' method
+            $null = $testString1, $testString2 | Assert-ObjectMethod -Method 'ToString' -Each
+        }
+
+        It 'Should throw when one element is missing the method with Each parameter' {
+            $testObject1 = [PSCustomObject]@{
+                Name = 'Object1'
+            }
+            $testObject1 | Add-Member -MemberType ScriptMethod -Name 'CustomMethod' -Value { 'test' }
+
+            $testObject2 = [PSCustomObject]@{
+                Name = 'Object2'
+            }
+
+            {
+                $testObject1, $testObject2 | Assert-ObjectMethod -Method 'CustomMethod' -Each
+            } | Should -Throw -ExpectedMessage "*method 'CustomMethod'*"
+        }
+
+        It 'Should not iterate when Each is not specified even with pipeline array' {
+            $array = @(
+                [PSCustomObject]@{ Name = 'Item1' }
+                [PSCustomObject]@{ Name = 'Item2' }
+            )
+
+            # Should check the array's GetHashCode method, not iterate
+            $null = $array | Assert-ObjectMethod -Method 'GetHashCode'
+        }
+
+        It 'Should work with Each parameter and Because parameter' {
+            $testObject1 = [PSCustomObject]@{ Name = 'Test1' }
+            $testObject2 = [PSCustomObject]@{ Name = 'Test2' }
+
+            {
+                @($testObject1, $testObject2) | Assert-ObjectMethod -Method 'NonExistent' -Each -Because 'testing Each with Because'
+            } | Should -Throw -ExpectedMessage '*because testing Each with Because*'
+        }
+
+        It 'Should only apply Each behavior when explicitly specified' {
+            # Test that Each is opt-in, not automatic for arrays
+            $objects = @('string1', 'string2')
+
+            # Without Each - checks array methods
+            $null = Assert-ObjectMethod -Actual $objects -Method 'GetEnumerator'
+            $null = Assert-ObjectMethod -Actual $objects -Method 'GetType'
+
+            # With Each - checks element methods
+            $null = $objects | Assert-ObjectMethod -Method 'ToString' -Each
+        }
+
+        It 'Should work with Each parameter when passed via Actual parameter' {
+            # Each parameter now works regardless of pipeline or parameter input
+            $array = @('item1', 'item2')
+
+            # When using -Each with -Actual parameter, should iterate through each element
+            $null = Assert-ObjectMethod -Actual $array -Method 'GetType' -Each
+        }
+
+        It 'Should work with arrays of different object types using Each' {
+            $obj1 = [PSCustomObject]@{ Value = 1 }
+            $obj1 | Add-Member -MemberType ScriptMethod -Name 'DoSomething' -Value { $this.Value }
+
+            $obj2 = [PSCustomObject]@{ Value = 2 }
+            $obj2 | Add-Member -MemberType ScriptMethod -Name 'DoSomething' -Value { $this.Value }
+
+            $null = $obj1, $obj2 | Assert-ObjectMethod -Method 'DoSomething' -Each
         }
     }
 }

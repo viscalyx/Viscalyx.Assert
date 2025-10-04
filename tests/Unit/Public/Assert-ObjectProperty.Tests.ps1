@@ -24,13 +24,13 @@ BeforeDiscovery {
 }
 
 BeforeAll {
-    $script:dscModuleName = 'Viscalyx.Assert'
+    $script:moduleName = 'Viscalyx.Assert'
 
-    Import-Module -Name $script:dscModuleName -Force -ErrorAction 'Stop'
+    Import-Module -Name $script:moduleName -Force -ErrorAction 'Stop'
 
-    $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:dscModuleName
-    $PSDefaultParameterValues['Mock:ModuleName'] = $script:dscModuleName
-    $PSDefaultParameterValues['Should:ModuleName'] = $script:dscModuleName
+    $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:moduleName
+    $PSDefaultParameterValues['Mock:ModuleName'] = $script:moduleName
+    $PSDefaultParameterValues['Should:ModuleName'] = $script:moduleName
 }
 
 AfterAll {
@@ -39,7 +39,7 @@ AfterAll {
     $PSDefaultParameterValues.Remove('Should:ModuleName')
 
     # Unload the module being tested so that it doesn't impact any other tests.
-    Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
+    Get-Module -Name $script:moduleName -All | Remove-Module -Force
 }
 
 Describe 'Assert-ObjectProperty' {
@@ -47,11 +47,11 @@ Describe 'Assert-ObjectProperty' {
         It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
             @{
                 ExpectedParameterSetName = 'AssertProperty'
-                ExpectedParameters = '[-Property] <string> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+                ExpectedParameters = '[-Property] <string> [-Actual] <Object> [-Because <string>] [-Each] [-NoTypeCheck] [<CommonParameters>]'
             }
             @{
                 ExpectedParameterSetName = 'AssertValue'
-                ExpectedParameters = '[-Property] <string> [-Value] <Object> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+                ExpectedParameters = '[-Property] <string> [-Value] <Object> [-Actual] <Object> [-Because <string>] [-Each] [-NoTypeCheck] [<CommonParameters>]'
             }
         ) {
             $result = (Get-Command -Name 'Assert-ObjectProperty').ParameterSets |
@@ -134,7 +134,7 @@ Describe 'Assert-ObjectProperty' {
             $null = $testObject | Assert-ObjectProperty -Property 'Name'
         }
 
-        It 'Should handle multiple objects in pipeline and check all of them' {
+        It 'Should handle multiple objects in pipeline and check all of them with Each parameter' {
             $testObject1 = [PSCustomObject]@{
                 Name  = 'Test1'
                 Value = 'Value1'
@@ -145,10 +145,10 @@ Describe 'Assert-ObjectProperty' {
             }
 
             # Both objects have 'Value' property, so this should pass
-            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value' -Each
         }
 
-        It 'Should throw when one of the pipeline objects is missing the property' {
+        It 'Should throw when one of the pipeline objects is missing the property with Each parameter' {
             $testObject1 = [PSCustomObject]@{
                 Name = 'Test1'
             }
@@ -158,7 +158,7 @@ Describe 'Assert-ObjectProperty' {
 
             # First object doesn't have 'Value' property, so this should fail
             {
-                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
+                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value' -Each
             } | Should -Throw -ExpectedMessage "*property 'Value'*"
         }
 
@@ -262,13 +262,15 @@ Describe 'Assert-ObjectProperty' {
             $null = Assert-ObjectProperty -Actual $testObject -Property 'ArrayValue' -Value @(1, 2, 3)
         }
 
-        It 'Should handle type coercion appropriately' {
+        It 'Should fail with strict type checking for different types by default' {
             $testObject = [PSCustomObject]@{
                 NumberValue = 123
             }
 
-            # PowerShell's -eq operator handles type coercion
-            $null = Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123'
+            # Strict type checking (default): int 123 should not equal string '123'
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123'
+            } | Should -Throw -ExpectedMessage "*Expected property 'NumberValue' to have type*"
         }
 
         It 'Should handle pipeline input with value assertion' {
@@ -278,6 +280,67 @@ Describe 'Assert-ObjectProperty' {
             }
 
             $null = $testObject | Assert-ObjectProperty -Property 'Name' -Value 'Test'
+        }
+    }
+
+    Context 'When using NoTypeCheck parameter' {
+        It 'Should pass when comparing number to string with -NoTypeCheck' {
+            $testObject = [PSCustomObject]@{
+                NumberValue = 123
+            }
+
+            # Lenient type checking: PowerShell's -eq performs type coercion
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123' -NoTypeCheck
+        }
+
+        It 'Should fail when comparing number to string without -NoTypeCheck (strict)' {
+            $testObject = [PSCustomObject]@{
+                NumberValue = 123
+            }
+
+            # Strict type checking (default): int 123 should not equal string '123'
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'NumberValue' -Value '123'
+            } | Should -Throw -ExpectedMessage "*Expected property 'NumberValue' to have type*"
+        }
+
+        It 'Should pass when comparing different numeric types with -NoTypeCheck' {
+            $testObject = [PSCustomObject]@{
+                IntValue = [int]42
+            }
+
+            # Lenient type checking: int 42 equals double 42.0 via type coercion
+            $null = Assert-ObjectProperty -Actual $testObject -Property 'IntValue' -Value ([double]42.0) -NoTypeCheck
+        }
+
+        It 'Should fail when comparing different numeric types without -NoTypeCheck (strict)' {
+            $testObject = [PSCustomObject]@{
+                IntValue = [int]42
+            }
+
+            # Strict type checking (default): [int]42 should not equal [double]42.0
+            {
+                Assert-ObjectProperty -Actual $testObject -Property 'IntValue' -Value ([double]42.0)
+            } | Should -Throw -ExpectedMessage "*Expected property 'IntValue' to have type*"
+        }
+
+        It 'Should work with -NoTypeCheck and Each parameter' {
+            $testObjects = @(
+                [PSCustomObject]@{ NumberValue = 123 }
+                [PSCustomObject]@{ NumberValue = 123 }
+            )
+
+            # Both objects should pass with lenient type checking (comparing number to string)
+            $null = Assert-ObjectProperty -Actual $testObjects -Property 'NumberValue' -Value '123' -Each -NoTypeCheck
+        }
+
+        It 'Should work with -NoTypeCheck via pipeline' {
+            $testObject = [PSCustomObject]@{
+                NumberValue = 123
+            }
+
+            # Pipeline with lenient type checking
+            $null = $testObject | Assert-ObjectProperty -Property 'NumberValue' -Value '123' -NoTypeCheck
         }
     }
 
@@ -365,28 +428,6 @@ Describe 'Assert-ObjectProperty' {
     }
 
     Context 'When testing edge cases for uncovered lines' {
-        It 'Should include Because message when null object in pipeline array' {
-            # Use InModuleScope to directly test the code path
-            InModuleScope -ScriptBlock {
-                $hasPipelineInput = $true
-                $Actual = @($null)
-                $Property = 'Name'
-                $Because = 'testing null handling'
-                
-                {
-                    foreach ($currentObject in $Actual) {
-                        if ($null -eq $currentObject) {
-                            $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
-                            if ($Because) {
-                                $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-                            }
-                            throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                        }
-                    }
-                } | Should -Throw -ExpectedMessage '*because testing null handling*'
-            }
-        }
-
         It 'Should include Because message when property not found in pipeline' {
             $testObject = [PSCustomObject]@{ Name = 'Test' }
 
@@ -419,26 +460,6 @@ Describe 'Assert-ObjectProperty' {
             } | Should -Throw -ExpectedMessage '*because custom reason*'
         }
 
-        It 'Should hit non-pipeline null check with Because parameter' {
-            # Test the non-pipeline null check path (lines 216-223)
-            InModuleScope -ScriptBlock {
-                $hasPipelineInput = $false
-                $Actual = $null
-                $Property = 'Name'
-                $Because = 'testing single object null'
-                
-                {
-                    if ($null -eq $Actual) {
-                        $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
-                        if ($Because) {
-                            $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-                        }
-                        throw [Pester.Factory]::CreateShouldErrorRecord($message, 'test', 1, 'test', $true)
-                    }
-                } | Should -Throw -ExpectedMessage '*because testing single object null*'
-            }
-        }
-
         It 'Should use ContainsKey for hashtable property check in pipeline' {
             # Test the hashtable path (line 124) with pipeline input
             InModuleScope -ScriptBlock {
@@ -447,7 +468,7 @@ Describe 'Assert-ObjectProperty' {
                     @{ Name = 'Test' }
                 )
                 $Property = 'Name'
-                
+
                 foreach ($currentObject in $Actual) {
                     $hasProperty = $false
                     if ($currentObject -is [System.Collections.IDictionary]) {
@@ -492,7 +513,7 @@ Describe 'Assert-ObjectProperty' {
             $testObject = [PSCustomObject]@{ Name = 'Test' }
 
             # Mock Get-Member to return $null to trigger line 151 ($hasProperty = $false)
-            Mock -ModuleName 'Viscalyx.Assert' -CommandName 'Get-Member' -MockWith { return $null }
+            Mock -CommandName 'Get-Member' -MockWith { return $null }
 
             { Assert-ObjectProperty -Actual $testObject -Property 'NonExistentProperty' } | Should -Throw
         }
@@ -530,6 +551,141 @@ Describe 'Assert-ObjectProperty' {
             {
                 Assert-ObjectProperty -Actual $testObject -Property 'Items' -Value $expectedValue
             } | Should -Throw -ExpectedMessage "*but the actual value was*"
+        }
+    }
+
+    Context 'When using the Each parameter' {
+        It 'Should check array property existence by default without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check that the array has Count property, not iterate through elements
+            $null = Assert-ObjectProperty -Actual $array -Property 'Count'
+        }
+
+        It 'Should check array property value by default without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's Count property, not iterate through elements
+            $null = Assert-ObjectProperty -Actual $array -Property 'Count' -Value 3
+        }
+
+        It 'Should check array Count property when passed via pipeline without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's Count property, not iterate through elements
+            $null = $array | Assert-ObjectProperty -Property 'Count' -Value 3
+        }
+
+        It 'Should check array Length property when passed via pipeline without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's Length property, not iterate through elements
+            $null = $array | Assert-ObjectProperty -Property 'Length' -Value 3
+        }
+
+        It 'Should iterate through each element when Each parameter is specified' {
+            $testObject1 = [PSCustomObject]@{
+                Name  = 'Object1'
+                Value = 100
+            }
+            $testObject2 = [PSCustomObject]@{
+                Name  = 'Object2'
+                Value = 200
+            }
+
+            # Should check that each object has 'Name' property
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Name' -Each
+        }
+
+        It 'Should iterate through each element and check values when Each parameter is specified' {
+            $testObject1 = [PSCustomObject]@{
+                Status = 'Active'
+            }
+            $testObject2 = [PSCustomObject]@{
+                Status = 'Active'
+            }
+
+            # Should check that each object has 'Status' property with value 'Active'
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Status' -Value 'Active' -Each
+        }
+
+        It 'Should throw when one element is missing the property with Each parameter' {
+            $testObject1 = [PSCustomObject]@{
+                Name = 'HasName'
+            }
+            $testObject2 = [PSCustomObject]@{
+                Other = 'NoName'
+            }
+
+            {
+                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Name' -Each
+            } | Should -Throw -ExpectedMessage "*property 'Name'*"
+        }
+
+        It 'Should throw when one element has wrong value with Each parameter' {
+            $testObject1 = [PSCustomObject]@{
+                Status = 'Active'
+            }
+            $testObject2 = [PSCustomObject]@{
+                Status = 'Inactive'
+            }
+
+            {
+                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Status' -Value 'Active' -Each
+            } | Should -Throw -ExpectedMessage "*Expected property 'Status' to have value 'Active'*"
+        }
+
+        It 'Should not iterate when Each is not specified even with pipeline array' {
+            $array = @(
+                [PSCustomObject]@{ Name = 'Item1' }
+                [PSCustomObject]@{ Name = 'Item2' }
+            )
+
+            # Should check the array's Count property, not the Name property of elements
+            $null = $array | Assert-ObjectProperty -Property 'Count' -Value 2
+        }
+
+        It 'Should work with Each parameter and Because parameter' {
+            $testObject = [PSCustomObject]@{
+                Name = 'Test'
+            }
+
+            {
+                @($testObject) | Assert-ObjectProperty -Property 'NonExistent' -Each -Because 'testing Each with Because'
+            } | Should -Throw -ExpectedMessage '*because testing Each with Because*'
+        }
+
+        It 'Should work with hashtables when using Each parameter' {
+            $hash1 = @{ Name = 'Hash1' }
+            $hash2 = @{ Name = 'Hash2' }
+
+            $null = $hash1, $hash2 | Assert-ObjectProperty -Property 'Name' -Each
+        }
+
+        It 'Should only apply Each behavior when explicitly specified' {
+            # Test that Each is opt-in, not automatic for arrays
+            $objects = @(
+                [PSCustomObject]@{ Name = 'Obj1' }
+                [PSCustomObject]@{ Name = 'Obj2' }
+            )
+
+            # Without Each - checks array properties
+            $null = Assert-ObjectProperty -Actual $objects -Property 'Count' -Value 2
+            $null = Assert-ObjectProperty -Actual $objects -Property 'Length' -Value 2
+
+            # With Each - checks element properties
+            $null = $objects | Assert-ObjectProperty -Property 'Name' -Each
+        }
+
+        It 'Should work with Each parameter when passed via Actual parameter' {
+            # Each parameter now works regardless of pipeline or parameter input
+            $array = @(
+                [PSCustomObject]@{ Name = 'Item1' }
+                [PSCustomObject]@{ Name = 'Item2' }
+            )
+
+            # When using -Each with -Actual parameter, should iterate through each element
+            $null = Assert-ObjectProperty -Actual $array -Property 'Name' -Each
         }
     }
 }

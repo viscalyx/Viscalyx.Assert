@@ -18,13 +18,20 @@
     .PARAMETER Because
         An optional reason or explanation for the assertion.
 
+    .PARAMETER Each
+        When specified and the input is an array, asserts that each element in
+        the array has the specified method. Without this parameter, the assertion
+        checks the array object itself.
+
     .INPUTS
         System.Object
-            Accepts any object via the pipeline for method inspection.
+
+        Accepts any object via the pipeline for method inspection.
 
     .OUTPUTS
         None
-            This command does not return any output on success.
+
+        This command does not return any output on success.
 
     .EXAMPLE
         PS> Assert-ObjectMethod -Actual $myObject -Method 'ToString'
@@ -49,6 +56,12 @@
 
         This example verifies that a collection object has an 'Add' method,
         which is useful when you need to ensure you can add items to a collection.
+
+    .EXAMPLE
+        PS> $arrayOfObjects | Assert-ObjectMethod -Method 'ToString' -Each
+
+        This example asserts that each object in the piped array has a 'ToString'
+        method. The `-Each` parameter enables element-by-element checking.
 #>
 function Assert-ObjectMethod
 {
@@ -71,7 +84,11 @@ function Assert-ObjectMethod
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Because
+        $Because,
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Each
     )
 
     $hasPipelineInput = $MyInvocation.ExpectingInput
@@ -79,10 +96,17 @@ function Assert-ObjectMethod
     if ($hasPipelineInput)
     {
         $Actual = @($local:Input)
+
+        # If we're not using -Each and we have a single-element array, unwrap it
+        # This handles the case where a single object is piped
+        if (-not $Each.IsPresent -and $Actual.Count -eq 1)
+        {
+            $Actual = $Actual[0]
+        }
     }
 
-    # If multiple objects were passed via pipeline, iterate through each one
-    if ($hasPipelineInput -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
+    # If Each is specified and we have an array, iterate through each element
+    if ($Each.IsPresent -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
     {
         foreach ($currentObject in $Actual)
         {
@@ -90,67 +114,16 @@ function Assert-ObjectMethod
             if ($null -eq $currentObject)
             {
                 $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
-
-                if ($Because)
-                {
-                    $message += " {0} $Because" -f $script:localizedData.Assert_ObjectMethod_Because
-                }
-
-                throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
             }
 
             # Check if the method exists on the current object
-            $hasMethod = $false
-            try
-            {
-                # Use Get-Member to check for method existence
-                $member = $currentObject | Get-Member -Name $Method -MemberType Method, ScriptMethod -ErrorAction SilentlyContinue
-                if ($null -ne $member)
-                {
-                    $hasMethod = $true
-                }
-                else
-                {
-                    # For dynamic objects and PSCustomObject, also check PSObject.Methods
-                    $methodMember = $currentObject.PSObject.Methods[$Method]
-                    if ($null -ne $methodMember)
-                    {
-                        $hasMethod = $true
-                    }
-                    else
-                    {
-                        # Final check: try to get the method directly for edge cases
-                        try
-                        {
-                            $methodInfo = $currentObject.GetType().GetMethod($Method)
-                            if ($null -ne $methodInfo)
-                            {
-                                $hasMethod = $true
-                            }
-                        }
-                        catch
-                        {
-                            # If reflection fails, the method doesn't exist
-                            $hasMethod = $false
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                $hasMethod = $false
-            }
+            $hasMethod = Test-ObjectHasMethod -InputObject $currentObject -MethodName $Method
 
             if (-not $hasMethod)
             {
                 $message = $script:localizedData.Assert_ObjectMethod_MethodNotFound -f $Method
-
-                if ($Because)
-                {
-                    $message += " {0} $Because" -f $script:localizedData.Assert_ObjectMethod_Because
-                }
-
-                throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
             }
         }
     }
@@ -161,67 +134,16 @@ function Assert-ObjectMethod
         if ($null -eq $Actual)
         {
             $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
-
-            if ($Because)
-            {
-                $message += " {0} $Because" -f $script:localizedData.Assert_ObjectMethod_Because
-            }
-
-            throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+            throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }
 
         # Check if the method exists on the object
-        $hasMethod = $false
-        try
-        {
-            # Use Get-Member to check for method existence
-            $member = $Actual | Get-Member -Name $Method -MemberType Method, ScriptMethod -ErrorAction SilentlyContinue
-            if ($null -ne $member)
-            {
-                $hasMethod = $true
-            }
-            else
-            {
-                # For dynamic objects and PSCustomObject, also check PSObject.Methods
-                $methodMember = $Actual.PSObject.Methods[$Method]
-                if ($null -ne $methodMember)
-                {
-                    $hasMethod = $true
-                }
-                else
-                {
-                    # Final check: try to get the method directly for edge cases
-                    try
-                    {
-                        $methodInfo = $Actual.GetType().GetMethod($Method)
-                        if ($null -ne $methodInfo)
-                        {
-                            $hasMethod = $true
-                        }
-                    }
-                    catch
-                    {
-                        # If reflection fails, the method doesn't exist
-                        $hasMethod = $false
-                    }
-                }
-            }
-        }
-        catch
-        {
-            $hasMethod = $false
-        }
+        $hasMethod = Test-ObjectHasMethod -InputObject $Actual -MethodName $Method
 
         if (-not $hasMethod)
         {
             $message = $script:localizedData.Assert_ObjectMethod_MethodNotFound -f $Method
-
-            if ($Because)
-            {
-                $message += " {0} $Because" -f $script:localizedData.Assert_ObjectMethod_Because
-            }
-
-            throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+            throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }
     }
 }
