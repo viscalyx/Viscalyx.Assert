@@ -182,13 +182,10 @@ Describe 'Assert-ObjectProperty' {
         }
 
         It 'Should verify properties of objects in collections' {
-            # Common pattern: testing collections of objects
-            foreach ($service in $script:mockServiceCollection)
-            {
-                $service | Should-HaveProperty -Property 'Name'
-                $service | Should-HaveProperty -Property 'Port'
-                $service | Should-HaveProperty -Property 'Type'
-            }
+            # Common pattern: testing collections of objects using -Each parameter
+            $script:mockServiceCollection | Should-HaveProperty -Property 'Name' -Each
+            $script:mockServiceCollection | Should-HaveProperty -Property 'Port' -Each
+            $script:mockServiceCollection | Should-HaveProperty -Property 'Type' -Each
         }
 
         It 'Should verify specific service properties by filtering' {
@@ -303,6 +300,89 @@ Describe 'Assert-ObjectProperty' {
             $appConfig.Features | Should-HaveProperty -Property 'Logging' -Value $true
             $appConfig.Features | Should-HaveProperty -Property 'Metrics' -Value $true
             $appConfig.Features | Should-HaveProperty -Property 'HealthChecks' -Value $true
+        }
+    }
+
+    Context 'Testing Each parameter for array element validation' {
+        BeforeAll {
+            $script:serviceArray = @(
+                [PSCustomObject]@{ Name = 'WebServer'; Status = 'Running'; Port = 80 }
+                [PSCustomObject]@{ Name = 'Database'; Status = 'Running'; Port = 5432 }
+                [PSCustomObject]@{ Name = 'Cache'; Status = 'Running'; Port = 6379 }
+            )
+        }
+
+        It 'Should verify array properties without Each parameter' {
+            # Without -Each, should check properties on the array itself
+            $script:serviceArray | Should-HaveProperty -Property 'Count' -Value 3
+            $script:serviceArray | Should-HaveProperty -Property 'Length' -Value 3
+        }
+
+        It 'Should verify each element has Name property with Each parameter' {
+            # With -Each, should check each element in the array
+            $script:serviceArray | Should-HaveProperty -Property 'Name' -Each
+        }
+
+        It 'Should verify each element has Status property with value Running using Each' {
+            $script:serviceArray | Should-HaveProperty -Property 'Status' -Value 'Running' -Each
+        }
+
+        It 'Should verify each element has Port property using Each' {
+            $script:serviceArray | Should-HaveProperty -Property 'Port' -Each
+        }
+
+        It 'Should fail when checking for non-existent property on elements with Each' {
+            {
+                $script:serviceArray | Should-HaveProperty -Property 'NonExistent' -Each
+            } | Should -Throw
+        }
+
+        It 'Should work with Each parameter on configuration objects' {
+            $configObjects = @(
+                @{ Setting1 = 'Value1'; Setting2 = 'Value2' }
+                @{ Setting1 = 'Value3'; Setting2 = 'Value4' }
+                @{ Setting1 = 'Value5'; Setting2 = 'Value6' }
+            )
+
+            # Each hashtable should have Setting1 and Setting2
+            $configObjects | Should-HaveProperty -Property 'Setting1' -Each
+            $configObjects | Should-HaveProperty -Property 'Setting2' -Each
+        }
+
+        It 'Should validate array property vs element property distinction' {
+            $testArray = @(
+                [PSCustomObject]@{ Id = 1; Name = 'Item1' }
+                [PSCustomObject]@{ Id = 2; Name = 'Item2' }
+            )
+
+            # Without -Each: check array properties
+            $testArray | Should-HaveProperty -Property 'Count' -Value 2
+
+            # With -Each: check element properties
+            $testArray | Should-HaveProperty -Property 'Id' -Each
+            $testArray | Should-HaveProperty -Property 'Name' -Each
+        }
+
+        It 'Should work with Each and Because parameters together' {
+            $services = @(
+                [PSCustomObject]@{ Name = 'Service1'; Active = $true }
+                [PSCustomObject]@{ Name = 'Service2'; Active = $true }
+            )
+
+            $services | Should-HaveProperty -Property 'Active' -Value $true -Each -Because 'all services must be active in production'
+        }
+
+        It 'Should validate mixed object types with Each parameter' {
+            $mixedObjects = @(
+                [PSCustomObject]@{ Status = 'OK'; Code = 200 }
+                [PSCustomObject]@{ Status = 'OK'; Code = 201 }
+                [PSCustomObject]@{ Status = 'OK'; Code = 204 }
+            )
+
+            # All should have Status property with value 'OK'
+            $mixedObjects | Should-HaveProperty -Property 'Status' -Value 'OK' -Each
+            # All should have Code property (different values)
+            $mixedObjects | Should-HaveProperty -Property 'Code' -Each
         }
     }
 }
