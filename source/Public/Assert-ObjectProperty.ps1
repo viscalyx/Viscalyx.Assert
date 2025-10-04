@@ -23,13 +23,20 @@
     .PARAMETER Because
         An optional reason or explanation for the assertion.
 
+    .PARAMETER Each
+        When specified and the input is an array, asserts that each element in
+        the array has the specified property (and optionally the specified value).
+        Without this parameter, the assertion checks the array object itself.
+
     .INPUTS
         System.Object
-            Accepts any object via the pipeline for property inspection.
+
+        Accepts any object via the pipeline for property inspection.
 
     .OUTPUTS
         None
-            This command does not return any output on success.
+
+        This command does not return any output on success.
 
     .EXAMPLE
         PS> Assert-ObjectProperty -Actual $myObject -Property 'Enabled'
@@ -56,6 +63,12 @@
 
         This example asserts that `$collection` has a property named 'Count' with
         the value 5, providing a reason for the assertion.
+
+    .EXAMPLE
+        PS> $arrayOfObjects | Assert-ObjectProperty -Property 'Name' -Each
+
+        This example asserts that each object in the piped array has a property
+        named 'Name'. The `-Each` parameter enables element-by-element checking.
 #>
 function Assert-ObjectProperty
 {
@@ -85,7 +98,11 @@ function Assert-ObjectProperty
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Because
+        $Because,
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Each
     )
 
     $hasPipelineInput = $MyInvocation.ExpectingInput
@@ -95,8 +112,8 @@ function Assert-ObjectProperty
         $Actual = @($local:Input)
     }
 
-    # If multiple objects were passed via pipeline, iterate through each one
-    if ($hasPipelineInput -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
+    # If Each is specified and we have an array, iterate through each element
+    if ($Each.IsPresent -and $hasPipelineInput -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
     {
         foreach ($currentObject in $Actual)
         {

@@ -47,11 +47,11 @@ Describe 'Assert-ObjectProperty' {
         It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
             @{
                 ExpectedParameterSetName = 'AssertProperty'
-                ExpectedParameters = '[-Property] <string> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+                ExpectedParameters = '[-Property] <string> [-Actual] <Object> [-Because <string>] [-Each] [<CommonParameters>]'
             }
             @{
                 ExpectedParameterSetName = 'AssertValue'
-                ExpectedParameters = '[-Property] <string> [-Value] <Object> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+                ExpectedParameters = '[-Property] <string> [-Value] <Object> [-Actual] <Object> [-Because <string>] [-Each] [<CommonParameters>]'
             }
         ) {
             $result = (Get-Command -Name 'Assert-ObjectProperty').ParameterSets |
@@ -134,7 +134,7 @@ Describe 'Assert-ObjectProperty' {
             $null = $testObject | Assert-ObjectProperty -Property 'Name'
         }
 
-        It 'Should handle multiple objects in pipeline and check all of them' {
+        It 'Should handle multiple objects in pipeline and check all of them with Each parameter' {
             $testObject1 = [PSCustomObject]@{
                 Name  = 'Test1'
                 Value = 'Value1'
@@ -145,10 +145,10 @@ Describe 'Assert-ObjectProperty' {
             }
 
             # Both objects have 'Value' property, so this should pass
-            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value' -Each
         }
 
-        It 'Should throw when one of the pipeline objects is missing the property' {
+        It 'Should throw when one of the pipeline objects is missing the property with Each parameter' {
             $testObject1 = [PSCustomObject]@{
                 Name = 'Test1'
             }
@@ -158,7 +158,7 @@ Describe 'Assert-ObjectProperty' {
 
             # First object doesn't have 'Value' property, so this should fail
             {
-                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value'
+                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Value' -Each
             } | Should -Throw -ExpectedMessage "*property 'Value'*"
         }
 
@@ -530,6 +530,142 @@ Describe 'Assert-ObjectProperty' {
             {
                 Assert-ObjectProperty -Actual $testObject -Property 'Items' -Value $expectedValue
             } | Should -Throw -ExpectedMessage "*but the actual value was*"
+        }
+    }
+
+    Context 'When using the Each parameter' {
+        It 'Should check array property existence by default without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check that the array has Count property, not iterate through elements
+            $null = Assert-ObjectProperty -Actual $array -Property 'Count'
+        }
+
+        It 'Should check array property value by default without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's Count property, not iterate through elements
+            $null = Assert-ObjectProperty -Actual $array -Property 'Count' -Value 3
+        }
+
+        It 'Should check array Count property when passed via pipeline without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's Count property, not iterate through elements
+            $null = $array | Assert-ObjectProperty -Property 'Count' -Value 3
+        }
+
+        It 'Should check array Length property when passed via pipeline without Each parameter' {
+            $array = @(1, 2, 3)
+
+            # Should check the array's Length property, not iterate through elements
+            $null = $array | Assert-ObjectProperty -Property 'Length' -Value 3
+        }
+
+        It 'Should iterate through each element when Each parameter is specified' {
+            $testObject1 = [PSCustomObject]@{
+                Name  = 'Object1'
+                Value = 100
+            }
+            $testObject2 = [PSCustomObject]@{
+                Name  = 'Object2'
+                Value = 200
+            }
+
+            # Should check that each object has 'Name' property
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Name' -Each
+        }
+
+        It 'Should iterate through each element and check values when Each parameter is specified' {
+            $testObject1 = [PSCustomObject]@{
+                Status = 'Active'
+            }
+            $testObject2 = [PSCustomObject]@{
+                Status = 'Active'
+            }
+
+            # Should check that each object has 'Status' property with value 'Active'
+            $null = $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Status' -Value 'Active' -Each
+        }
+
+        It 'Should throw when one element is missing the property with Each parameter' {
+            $testObject1 = [PSCustomObject]@{
+                Name = 'HasName'
+            }
+            $testObject2 = [PSCustomObject]@{
+                Other = 'NoName'
+            }
+
+            {
+                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Name' -Each
+            } | Should -Throw -ExpectedMessage "*property 'Name'*"
+        }
+
+        It 'Should throw when one element has wrong value with Each parameter' {
+            $testObject1 = [PSCustomObject]@{
+                Status = 'Active'
+            }
+            $testObject2 = [PSCustomObject]@{
+                Status = 'Inactive'
+            }
+
+            {
+                $testObject1, $testObject2 | Assert-ObjectProperty -Property 'Status' -Value 'Active' -Each
+            } | Should -Throw -ExpectedMessage "*Expected property 'Status' to have value 'Active'*"
+        }
+
+        It 'Should not iterate when Each is not specified even with pipeline array' {
+            $array = @(
+                [PSCustomObject]@{ Name = 'Item1' }
+                [PSCustomObject]@{ Name = 'Item2' }
+            )
+
+            # Should check the array's Count property, not the Name property of elements
+            $null = $array | Assert-ObjectProperty -Property 'Count' -Value 2
+        }
+
+        It 'Should work with Each parameter and Because parameter' {
+            $testObject = [PSCustomObject]@{
+                Name = 'Test'
+            }
+
+            {
+                @($testObject) | Assert-ObjectProperty -Property 'NonExistent' -Each -Because 'testing Each with Because'
+            } | Should -Throw -ExpectedMessage '*because testing Each with Because*'
+        }
+
+        It 'Should work with hashtables when using Each parameter' {
+            $hash1 = @{ Name = 'Hash1' }
+            $hash2 = @{ Name = 'Hash2' }
+
+            $null = $hash1, $hash2 | Assert-ObjectProperty -Property 'Name' -Each
+        }
+
+        It 'Should only apply Each behavior when explicitly specified' {
+            # Test that Each is opt-in, not automatic for arrays
+            $objects = @(
+                [PSCustomObject]@{ Name = 'Obj1' }
+                [PSCustomObject]@{ Name = 'Obj2' }
+            )
+
+            # Without Each - checks array properties
+            $null = Assert-ObjectProperty -Actual $objects -Property 'Count' -Value 2
+            $null = Assert-ObjectProperty -Actual $objects -Property 'Length' -Value 2
+
+            # With Each - checks element properties
+            $null = $objects | Assert-ObjectProperty -Property 'Name' -Each
+        }
+
+        It 'Should require pipeline input for Each parameter to work' {
+            # Each parameter only applies to pipeline input
+            $array = @(
+                [PSCustomObject]@{ Name = 'Item1' }
+                [PSCustomObject]@{ Name = 'Item2' }
+            )
+
+            # When not piped, Each should not iterate (it's not pipeline input)
+            # This tests the condition: $Each.IsPresent -and $hasPipelineInput
+            $null = Assert-ObjectProperty -Actual $array -Property 'Count' -Value 2 -Each
         }
     }
 }
