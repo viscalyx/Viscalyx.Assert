@@ -6,7 +6,7 @@ BeforeDiscovery {
     {
         if (-not (Get-Module -Name 'DscResource.Test'))
         {
-            # Assumes dependencies have been resolved, so if this module is not available, run 'noop' task.
+            # Assumes dependencies has been resolved, so if this module is not available, run 'noop' task.
             if (-not (Get-Module -Name 'DscResource.Test' -ListAvailable))
             {
                 # Redirect all streams to $null, except the error stream (stream 2)
@@ -328,7 +328,7 @@ Describe 'Assert-ObjectMethod' {
                             $Actual = @($null)
                             $Method = 'ToString'
                             $Because = 'testing null handling'
-                            
+
                             foreach ($currentObject in $Actual) {
                                 if ($null -eq $currentObject) {
                                     $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
@@ -367,7 +367,7 @@ Describe 'Assert-ObjectMethod' {
                 $Actual = $null
                 $Method = 'ToString'
                 $Because = 'testing single object null'
-                
+
                 {
                     if ($null -eq $Actual) {
                         $message = $script:localizedData.Assert_ObjectMethod_ActualIsNull
@@ -456,7 +456,7 @@ Describe 'Assert-ObjectMethod' {
                 Name = 'Object1'
             }
             $testObject1 | Add-Member -MemberType ScriptMethod -Name 'CustomMethod' -Value { 'test' }
-            
+
             $testObject2 = [PSCustomObject]@{
                 Name = 'Object2'
             }
@@ -508,7 +508,7 @@ Describe 'Assert-ObjectMethod' {
         It 'Should work with arrays of different object types using Each' {
             $obj1 = [PSCustomObject]@{ Value = 1 }
             $obj1 | Add-Member -MemberType ScriptMethod -Name 'DoSomething' -Value { $this.Value }
-            
+
             $obj2 = [PSCustomObject]@{ Value = 2 }
             $obj2 | Add-Member -MemberType ScriptMethod -Name 'DoSomething' -Value { $this.Value }
 

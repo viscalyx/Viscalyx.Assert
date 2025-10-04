@@ -6,7 +6,7 @@ BeforeDiscovery {
     {
         if (-not (Get-Module -Name 'DscResource.Test'))
         {
-            # Assumes dependencies have been resolved, so if this module is not available, run 'noop' task.
+            # Assumes dependencies has been resolved, so if this module is not available, run 'noop' task.
             if (-not (Get-Module -Name 'DscResource.Test' -ListAvailable))
             {
                 # Redirect all streams to $null, except the error stream (stream 2)
@@ -435,7 +435,7 @@ Describe 'Assert-ObjectProperty' {
                 $Actual = @($null)
                 $Property = 'Name'
                 $Because = 'testing null handling'
-                
+
                 {
                     foreach ($currentObject in $Actual) {
                         if ($null -eq $currentObject) {
@@ -489,7 +489,7 @@ Describe 'Assert-ObjectProperty' {
                 $Actual = $null
                 $Property = 'Name'
                 $Because = 'testing single object null'
-                
+
                 {
                     if ($null -eq $Actual) {
                         $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
@@ -510,7 +510,7 @@ Describe 'Assert-ObjectProperty' {
                     @{ Name = 'Test' }
                 )
                 $Property = 'Name'
-                
+
                 foreach ($currentObject in $Actual) {
                     $hasProperty = $false
                     if ($currentObject -is [System.Collections.IDictionary]) {
