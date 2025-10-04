@@ -5,12 +5,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Assert-ObjectProperty`
+  - Added parameter `NoTypeCheck` to opt-in for lenient type checking, allowing
+    PowerShell type coercion when comparing values.
+- Added private functions:
+  - `Get-TypeName` - Gets the full type name of a value as a string, or 'null'
+    if the value is null.
+  - `New-AssertionError` - Creates a Pester assertion error record with optional
+    'because' reasoning to standardize error creation across assertion commands.
+  - `Test-ObjectHasMethod` - Tests whether an object has a specified method,
+    supporting various object types including PSCustomObjects and .NET objects.
+  - `Test-ObjectHasProperty` - Tests whether an object has a specified property,
+    supporting hashtables, PSCustomObjects, and .NET objects.
+  - `Test-ObjectType` - Tests whether two values have the same type for strict
+    type checking in assertion commands.
+  - `Test-ValueEquality` - Tests whether two values are equal, supporting both
+    scalar values and arrays with structural comparison.
+
 ### Changed
 
 - `Assert-ObjectProperty`
   - Added parameter `Each` to opt-in for element-by-element checking when
     passing arrays via pipeline. Without this parameter, the command now checks
     properties on the array object itself (e.g., `Count`, `Length`).
+  - Improved error messages to distinguish between type mismatches and value
+    mismatches when strict type checking is enabled.
 - `Assert-ObjectMethod`
   - Added parameter `Each` to opt-in for element-by-element checking when
     passing arrays via pipeline. Without this parameter, the command now checks
