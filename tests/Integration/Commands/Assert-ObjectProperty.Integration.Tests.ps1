@@ -115,7 +115,7 @@ Describe 'Assert-ObjectProperty' {
             $testDate | Should-HaveProperty -Property 'Year' -Value 2023
             $testDate | Should-HaveProperty -Property 'Month' -Value 12
             $testDate | Should-HaveProperty -Property 'Day' -Value 25
-            $testDate | Should-HaveProperty -Property 'DayOfWeek' -Value 'Monday'
+            $testDate | Should-HaveProperty -Property 'DayOfWeek' -Value ([System.DayOfWeek]::Monday)
             $testDate | Should-HaveProperty -Property 'Kind'
         }
     }
