@@ -27,18 +27,18 @@ BeforeDiscovery {
     }
     catch [System.IO.FileNotFoundException]
     {
-        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -ResolveDependency -Tasks build" first.'
+        throw 'DscResource.Test module dependency not found. Please run ".\build.ps1 -ResolveDependency -Tasks noop" first.'
     }
 }
 
 BeforeAll {
-    $script:dscModuleName = 'Viscalyx.Assert'
+    $script:moduleName = 'Viscalyx.Assert'
 
-    Import-Module -Name $script:dscModuleName -Force -ErrorAction 'Stop'
+    Import-Module -Name $script:moduleName -Force -ErrorAction 'Stop'
 
-    $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:dscModuleName
-    $PSDefaultParameterValues['Mock:ModuleName'] = $script:dscModuleName
-    $PSDefaultParameterValues['Should:ModuleName'] = $script:dscModuleName
+    $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:moduleName
+    $PSDefaultParameterValues['Mock:ModuleName'] = $script:moduleName
+    $PSDefaultParameterValues['Should:ModuleName'] = $script:moduleName
 }
 
 AfterAll {
@@ -47,7 +47,7 @@ AfterAll {
     $PSDefaultParameterValues.Remove('Should:ModuleName')
 
     # Unload the module being tested so that it doesn't impact any other tests.
-    Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
+    Get-Module -Name $script:moduleName -All | Remove-Module -Force
 }
 
 Describe 'Test-ObjectHasMethod' {
@@ -88,7 +88,7 @@ Describe 'Test-ObjectHasMethod' {
     Context 'When testing PSCustomObject with ScriptMethod' {
         It 'Should return true when ScriptMethod exists' {
             InModuleScope -ScriptBlock {
-                $object = New-Object -TypeName PSObject
+                $object = [PSCustomObject] @{}
                 $object | Add-Member -MemberType ScriptMethod -Name 'CustomMethod' -Value { return 'Test' }
                 $result = Test-ObjectHasMethod -InputObject $object -MethodName 'CustomMethod'
                 $result | Should -BeTrue
@@ -97,7 +97,7 @@ Describe 'Test-ObjectHasMethod' {
 
         It 'Should return false when ScriptMethod does not exist' {
             InModuleScope -ScriptBlock {
-                $object = New-Object -TypeName PSObject
+                $object = [PSCustomObject] @{}
                 $object | Add-Member -MemberType ScriptMethod -Name 'CustomMethod' -Value { return 'Test' }
                 $result = Test-ObjectHasMethod -InputObject $object -MethodName 'NonExistent'
                 $result | Should -BeFalse
@@ -108,7 +108,7 @@ Describe 'Test-ObjectHasMethod' {
     Context 'When testing collections' {
         It 'Should return true for Add method on ArrayList' {
             InModuleScope -ScriptBlock {
-                $object = New-Object System.Collections.ArrayList
+                $object = [System.Collections.ArrayList]::new()
                 $result = Test-ObjectHasMethod -InputObject $object -MethodName 'Add'
                 $result | Should -BeTrue
             }
