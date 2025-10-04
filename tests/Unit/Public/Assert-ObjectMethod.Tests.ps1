@@ -497,12 +497,11 @@ Describe 'Assert-ObjectMethod' {
             $null = $objects | Assert-ObjectMethod -Method 'ToString' -Each
         }
 
-        It 'Should require pipeline input for Each parameter to work' {
-            # Each parameter only applies to pipeline input
+        It 'Should work with Each parameter when passed via Actual parameter' {
+            # Each parameter now works regardless of pipeline or parameter input
             $array = @('item1', 'item2')
 
-            # When not piped, Each should not iterate (it's not pipeline input)
-            # This tests the condition: $Each.IsPresent -and $hasPipelineInput
+            # When using -Each with -Actual parameter, should iterate through each element
             $null = Assert-ObjectMethod -Actual $array -Method 'GetType' -Each
         }
 

@@ -28,14 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Assert-ObjectProperty`
   - Added parameter `Each` to opt-in for element-by-element checking when
-    passing arrays via pipeline. Without this parameter, the command now checks
-    properties on the array object itself (e.g., `Count`, `Length`).
+    passing arrays via pipeline or parameter. Without this parameter, the
+    command now checks properties on the array object itself (e.g., `Count`,
+    `Length`).
   - Improved error messages to distinguish between type mismatches and value
     mismatches when strict type checking is enabled.
 - `Assert-ObjectMethod`
   - Added parameter `Each` to opt-in for element-by-element checking when
-    passing arrays via pipeline. Without this parameter, the command now checks
-    methods on the array object itself.
+    passing arrays via pipeline or parameter. Without this parameter, the
+    command now checks methods on the array object itself.
 - `Assert-BlockString`
   - Refactored to use the `New-AssertionError` private function for consistent
     error handling across all assertion commands.

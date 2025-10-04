@@ -106,7 +106,7 @@ function Assert-ObjectMethod
     }
 
     # If Each is specified and we have an array, iterate through each element
-    if ($Each.IsPresent -and $hasPipelineInput -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
+    if ($Each.IsPresent -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
     {
         foreach ($currentObject in $Actual)
         {

@@ -327,12 +327,11 @@ Describe 'Assert-ObjectProperty' {
         It 'Should work with -NoTypeCheck and Each parameter' {
             $testObjects = @(
                 [PSCustomObject]@{ NumberValue = 123 }
-                [PSCustomObject]@{ NumberValue = 456 }
+                [PSCustomObject]@{ NumberValue = 123 }
             )
 
-            # Both objects should pass with lenient type checking
+            # Both objects should pass with lenient type checking (comparing number to string)
             $null = Assert-ObjectProperty -Actual $testObjects -Property 'NumberValue' -Value '123' -Each -NoTypeCheck
-            $null = Assert-ObjectProperty -Actual $testObjects -Property 'NumberValue' -Value '456' -Each -NoTypeCheck
         }
 
         It 'Should work with -NoTypeCheck via pipeline' {
@@ -720,16 +719,15 @@ Describe 'Assert-ObjectProperty' {
             $null = $objects | Assert-ObjectProperty -Property 'Name' -Each
         }
 
-        It 'Should require pipeline input for Each parameter to work' {
-            # Each parameter only applies to pipeline input
+        It 'Should work with Each parameter when passed via Actual parameter' {
+            # Each parameter now works regardless of pipeline or parameter input
             $array = @(
                 [PSCustomObject]@{ Name = 'Item1' }
                 [PSCustomObject]@{ Name = 'Item2' }
             )
 
-            # When not piped, Each should not iterate (it's not pipeline input)
-            # This tests the condition: $Each.IsPresent -and $hasPipelineInput
-            $null = Assert-ObjectProperty -Actual $array -Property 'Count' -Value 2 -Each
+            # When using -Each with -Actual parameter, should iterate through each element
+            $null = Assert-ObjectProperty -Actual $array -Property 'Name' -Each
         }
     }
 }
