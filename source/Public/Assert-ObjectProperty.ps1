@@ -110,6 +110,13 @@ function Assert-ObjectProperty
     if ($hasPipelineInput)
     {
         $Actual = @($local:Input)
+
+        # If we're not using -Each and we have a single-element array, unwrap it
+        # This handles the case where a single hashtable or object is piped
+        if (-not $Each.IsPresent -and $Actual.Count -eq 1)
+        {
+            $Actual = $Actual[0]
+        }
     }
 
     # If Each is specified and we have an array, iterate through each element
