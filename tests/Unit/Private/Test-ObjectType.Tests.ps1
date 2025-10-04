@@ -105,7 +105,7 @@ Describe 'Test-ObjectType' {
 
         It 'Should return true when both are hashtables' {
             InModuleScope -ScriptBlock {
-                $result = Test-ObjectType -ActualValue @{Key = 'Value1'} -ExpectedValue @{Key = 'Value2'}
+                $result = Test-ObjectType -ActualValue @{Key = 'Value1' } -ExpectedValue @{Key = 'Value2' }
                 $result | Should -BeTrue
             }
         }
@@ -153,8 +153,8 @@ Describe 'Test-ObjectType' {
 
         It 'Should return false when comparing hashtable to PSCustomObject' {
             InModuleScope -ScriptBlock {
-                $hashtable = @{Name = 'Test'}
-                $psobject = [PSCustomObject]@{Name = 'Test'}
+                $hashtable = @{Name = 'Test' }
+                $psobject = [PSCustomObject]@{Name = 'Test' }
                 $result = Test-ObjectType -ActualValue $hashtable -ExpectedValue $psobject
                 $result | Should -BeFalse
             }
@@ -207,8 +207,8 @@ Describe 'Test-ObjectType' {
 
         It 'Should return true when comparing identical PSCustomObjects' {
             InModuleScope -ScriptBlock {
-                $obj1 = [PSCustomObject]@{Name = 'Test1'}
-                $obj2 = [PSCustomObject]@{Name = 'Test2'}
+                $obj1 = [PSCustomObject]@{Name = 'Test1' }
+                $obj2 = [PSCustomObject]@{Name = 'Test2' }
                 $result = Test-ObjectType -ActualValue $obj1 -ExpectedValue $obj2
                 $result | Should -BeTrue
             }
