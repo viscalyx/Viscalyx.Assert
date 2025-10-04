@@ -1,7 +1,6 @@
 <#
     .SYNOPSIS
-        Asserts that an object contains a specified property and optionally that
-        the property has a specified value.
+        Asserts that an object contains a specified property.
 
     .DESCRIPTION
         The `Assert-ObjectProperty` command verifies that an object contains a
@@ -27,6 +26,12 @@
         When specified and the input is an array, asserts that each element in
         the array has the specified property (and optionally the specified value).
         Without this parameter, the assertion checks the array object itself.
+
+    .PARAMETER NoTypeCheck
+        When specified, allows PowerShell type coercion when comparing values
+        (e.g., allows 123 to equal '123'). By default, value comparisons use
+        strict type checking where types must match exactly. This parameter
+        only applies when using the Value parameter.
 
     .INPUTS
         System.Object
@@ -69,6 +74,12 @@
 
         This example asserts that each object in the piped array has a property
         named 'Name'. The `-Each` parameter enables element-by-element checking.
+
+    .EXAMPLE
+        Assert-ObjectProperty -Actual $myObject -Property 'Value' -Value 123 -NoTypeCheck
+
+        This example uses lenient type checking, so if the Value property contains
+        the string '123', it will be considered equal to the number 123.
 #>
 function Assert-ObjectProperty
 {
@@ -102,7 +113,11 @@ function Assert-ObjectProperty
 
         [Parameter()]
         [System.Management.Automation.SwitchParameter]
-        $Each
+        $Each,
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $NoTypeCheck
     )
 
     $hasPipelineInput = $MyInvocation.ExpectingInput
@@ -128,70 +143,16 @@ function Assert-ObjectProperty
             if ($null -eq $currentObject)
             {
                 $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
-
-                if ($Because)
-                {
-                    $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-                }
-
-                throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
             }
 
             # Check if the property exists on the current object
-            $hasProperty = $false
-            try
-            {
-                # For hashtables, check if the key exists
-                if ($currentObject -is [System.Collections.IDictionary])
-                {
-                    $hasProperty = $currentObject.ContainsKey($Property)
-                }
-                # For PSCustomObject and other objects, try PSObject.Properties first
-                elseif ($null -ne $currentObject.PSObject.Properties[$Property])
-                {
-                    $hasProperty = $true
-                }
-                # Use Get-Member as fallback for .NET objects
-                else
-                {
-                    $member = $currentObject | Get-Member -Name $Property -MemberType Property, NoteProperty, ScriptProperty -ErrorAction SilentlyContinue
-                    if ($null -ne $member)
-                    {
-                        $hasProperty = $true
-                    }
-                    else
-                    {
-                        # Final check with direct property access for edge cases
-                        try
-                        {
-                            $null = $currentObject.$Property
-                            # If we got here without exception, the property exists
-                            # But we need to make sure it's not just returning $null for non-existent properties
-                            $actualMember = $currentObject.PSObject.Members | Where-Object { $_.Name -eq $Property }
-                            $hasProperty = $null -ne $actualMember
-                        }
-                        catch
-                        {
-                            $hasProperty = $false
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                $hasProperty = $false
-            }
+            $hasProperty = Test-ObjectHasProperty -InputObject $currentObject -PropertyName $Property
 
             if (-not $hasProperty)
             {
                 $message = $script:localizedData.Assert_ObjectProperty_PropertyNotFound -f $Property
-
-                if ($Because)
-                {
-                    $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-                }
-
-                throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
             }
 
             # If we're in the AssertValue parameter set, also check the value
@@ -199,33 +160,27 @@ function Assert-ObjectProperty
             {
                 $actualValue = $currentObject.$Property
 
-                # Use more sophisticated comparison that handles arrays and null values correctly
-                $valuesAreEqual = $false
-                if ($null -eq $actualValue -and $null -eq $Value)
+                # Check type compatibility first (unless NoTypeCheck is specified)
+                if (-not $NoTypeCheck.IsPresent)
                 {
-                    $valuesAreEqual = $true
+                    $typesMatch = Test-ObjectType -ActualValue $actualValue -ExpectedValue $Value
+
+                    if (-not $typesMatch)
+                    {
+                        $actualType = Get-TypeName -Value $actualValue
+                        $expectedType = Get-TypeName -Value $Value
+                        $message = $script:localizedData.Assert_ObjectProperty_TypeMismatch -f $Property, $expectedType, $actualType
+                        throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
+                    }
                 }
-                elseif ($actualValue -is [System.Array] -and $Value -is [System.Array])
-                {
-                    # Use StructuralEqualityComparer for element-wise array comparison (supports value-type arrays)
-                    $valuesAreEqual = [System.Collections.StructuralComparisons]::StructuralEqualityComparer.Equals($actualValue, $Value)
-                }
-                else
-                {
-                    # Use PowerShell's built-in comparison for other types
-                    $valuesAreEqual = $actualValue -eq $Value
-                }
+
+                # Then check value equality
+                $valuesAreEqual = Test-ValueEquality -ActualValue $actualValue -ExpectedValue $Value
 
                 if (-not $valuesAreEqual)
                 {
                     $message = $script:localizedData.Assert_ObjectProperty_ValueMismatch -f $Property, $Value, $actualValue
-
-                    if ($Because)
-                    {
-                        $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-                    }
-
-                    throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+                    throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
                 }
             }
         }
@@ -237,70 +192,16 @@ function Assert-ObjectProperty
         if ($null -eq $Actual)
         {
             $message = $script:localizedData.Assert_ObjectProperty_ActualIsNull
-
-            if ($Because)
-            {
-                $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-            }
-
-            throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+            throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }
 
         # Check if the property exists on the object
-        $hasProperty = $false
-        try
-        {
-            # For hashtables, check if the key exists
-            if ($Actual -is [System.Collections.IDictionary])
-            {
-                $hasProperty = $Actual.ContainsKey($Property)
-            }
-            # For PSCustomObject and other objects, try PSObject.Properties first
-            elseif ($null -ne $Actual.PSObject.Properties[$Property])
-            {
-                $hasProperty = $true
-            }
-            # Use Get-Member as fallback for .NET objects
-            else
-            {
-                $member = $Actual | Get-Member -Name $Property -MemberType Property, NoteProperty, ScriptProperty -ErrorAction SilentlyContinue
-                if ($null -ne $member)
-                {
-                    $hasProperty = $true
-                }
-                else
-                {
-                    # Final check with direct property access for edge cases
-                    try
-                    {
-                        $null = $Actual.$Property
-                        # If we got here without exception, the property exists
-                        # But we need to make sure it's not just returning $null for non-existent properties
-                        $actualMember = $Actual.PSObject.Members | Where-Object { $_.Name -eq $Property }
-                        $hasProperty = $null -ne $actualMember
-                    }
-                    catch
-                    {
-                        $hasProperty = $false
-                    }
-                }
-            }
-        }
-        catch
-        {
-            $hasProperty = $false
-        }
+        $hasProperty = Test-ObjectHasProperty -InputObject $Actual -PropertyName $Property
 
         if (-not $hasProperty)
         {
             $message = $script:localizedData.Assert_ObjectProperty_PropertyNotFound -f $Property
-
-            if ($Because)
-            {
-                $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-            }
-
-            throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+            throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }
 
         # If we're in the AssertValue parameter set, also check the value
@@ -308,33 +209,27 @@ function Assert-ObjectProperty
         {
             $actualValue = $Actual.$Property
 
-            # Use more sophisticated comparison that handles arrays and null values correctly
-            $valuesAreEqual = $false
-            if ($null -eq $actualValue -and $null -eq $Value)
+            # Check type compatibility first (unless NoTypeCheck is specified)
+            if (-not $NoTypeCheck.IsPresent)
             {
-                $valuesAreEqual = $true
+                $typesMatch = Test-ObjectType -ActualValue $actualValue -ExpectedValue $Value
+
+                if (-not $typesMatch)
+                {
+                    $actualType = Get-TypeName -Value $actualValue
+                    $expectedType = Get-TypeName -Value $Value
+                    $message = $script:localizedData.Assert_ObjectProperty_TypeMismatch -f $Property, $expectedType, $actualType
+                    throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
+                }
             }
-            elseif ($actualValue -is [System.Array] -and $Value -is [System.Array])
-            {
-                # Use SequenceEqual for efficient structural array comparison
-                $valuesAreEqual = [System.Linq.Enumerable]::SequenceEqual([System.Collections.Generic.IEnumerable[object]]$actualValue, [System.Collections.Generic.IEnumerable[object]]$Value)
-            }
-            else
-            {
-                # Use PowerShell's built-in comparison for other types
-                $valuesAreEqual = $actualValue -eq $Value
-            }
+
+            # Then check value equality
+            $valuesAreEqual = Test-ValueEquality -ActualValue $actualValue -ExpectedValue $Value
 
             if (-not $valuesAreEqual)
             {
                 $message = $script:localizedData.Assert_ObjectProperty_ValueMismatch -f $Property, $Value, $actualValue
-
-                if ($Because)
-                {
-                    $message += " {0} $Because" -f $script:localizedData.Assert_ObjectProperty_Because
-                }
-
-                throw [Pester.Factory]::CreateShouldErrorRecord($message, $MyInvocation.ScriptName, $MyInvocation.ScriptLineNumber, $MyInvocation.Line.TrimEnd([System.Environment]::NewLine), $true)
+                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
             }
         }
     }
