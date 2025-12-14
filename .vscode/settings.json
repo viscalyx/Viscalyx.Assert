@@ -42,8 +42,8 @@
     "cSpell.ignoreRegExpList": [
         "/HKCU:/g",
         "/analyzersettings\\.psd1/g",
-        "/\\b[A-Z]+\\d{4}\\b/g",
-        "/\\[\\d*(;\\d+)*m[^\\[]*(?=\\[|$)/g"
+        "/\\[\\d*(;\\d+)*m[^\\[]*(?=\\[|$)/g",
+        "/\\b[A-Za-z]{2,}\\d{4}\\b/g"
     ],
     "[markdown]": {
         "files.trimTrailingWhitespace": true,
@@ -55,10 +55,13 @@
         "[tT]ests/[uU]nit/**/*.[tT]ests.[pP][sS]1",
         "[tT]ests/[uU]nit/*.[tT]ests.[pP][sS]1"
     ],
-    "pester.runTestsInNewProcess": false,
+    "pester.runTestsInNewProcess": true,
     "pester.pesterModulePath": "./output/RequiredModules/Pester",
     "powershell.pester.codeLens": true,
     "pester.suppressCodeLensNotice": true,
+    "markdownlint.ignore": [
+        ".github/CODEOWNERS"
+    ],
     "github.copilot.chat.codeGeneration.useInstructionFiles": true,
     "terminal.integrated.defaultProfile.osx": "pwsh",
     "terminal.integrated.profiles.osx": {
@@ -84,6 +87,27 @@
         "bash": {
             "path": "bash",
             "args": []
+        }
+    },
+    "chat.tools.terminal.terminalProfile.osx": {
+        "path": "pwsh",
+        "args": [],
+        "env": {
+            "COPILOT": "1"
+        }
+    },
+    "chat.tools.terminal.terminalProfile.linux": {
+        "path": "pwsh",
+        "args": [],
+        "env": {
+            "COPILOT": "1"
+        }
+    },
+    "chat.tools.terminal.terminalProfile.windows": {
+        "path": "pwsh.exe",
+        "args": [],
+        "env": {
+            "COPILOT": "1"
         }
     }
 }
