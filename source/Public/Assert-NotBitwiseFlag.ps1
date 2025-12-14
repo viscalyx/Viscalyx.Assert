@@ -35,25 +35,25 @@
         This command does not return any output on success.
 
     .EXAMPLE
-        PS> Assert-NotBitwiseFlag -Actual 3 -Flag 4
+        Assert-NotBitwiseFlag -Actual 3 -Flag 4
 
         This example asserts that the value 3 (binary: 011) does NOT have the
         flag 4 (binary: 100) set. This will pass because 3 -band 4 equals 0.
 
     .EXAMPLE
-        PS> $fileAttributes | Assert-NotBitwiseFlag -Flag [System.IO.FileAttributes]::Hidden
+        $fileAttributes | Assert-NotBitwiseFlag -Flag [System.IO.FileAttributes]::Hidden
 
         This example demonstrates pipeline usage with enum flags. The file
         attributes value is checked to ensure the Hidden flag is not set.
 
     .EXAMPLE
-        PS> Assert-NotBitwiseFlag -Actual $permissions -Flag 0x02 -Because 'write permission should not be set for read-only user'
+        Assert-NotBitwiseFlag -Actual $permissions -Flag 0x02 -Because 'write permission should not be set for read-only user'
 
         This example asserts that the permissions value does not have the write bit
         (0x02) set, providing a reason for the assertion.
 
     .EXAMPLE
-        PS> @(1, 2, 3) | Assert-NotBitwiseFlag -Flag 4 -Each
+        @(1, 2, 3) | Assert-NotBitwiseFlag -Flag 4 -Each
 
         This example asserts that each value in the array does not have the flag 4 set.
         The `-Each` parameter enables element-by-element checking.

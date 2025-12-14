@@ -35,25 +35,25 @@
         This command does not return any output on success.
 
     .EXAMPLE
-        PS> Assert-BitwiseFlag -Actual 7 -Flag 4
+        Assert-BitwiseFlag -Actual 7 -Flag 4
 
         This example asserts that the value 7 (binary: 111) has the flag 4
         (binary: 100) set. This will pass because 7 -band 4 equals 4.
 
     .EXAMPLE
-        PS> $fileAttributes | Assert-BitwiseFlag -Flag [System.IO.FileAttributes]::ReadOnly
+        $fileAttributes | Assert-BitwiseFlag -Flag [System.IO.FileAttributes]::ReadOnly
 
         This example demonstrates pipeline usage with enum flags. The file
         attributes value is checked for the ReadOnly flag.
 
     .EXAMPLE
-        PS> Assert-BitwiseFlag -Actual $permissions -Flag 0x04 -Because 'execute permission should be set'
+        Assert-BitwiseFlag -Actual $permissions -Flag 0x04 -Because 'execute permission should be set'
 
         This example asserts that the permissions value has the execute bit
         (0x04) set, providing a reason for the assertion.
 
     .EXAMPLE
-        PS> @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 -Each
+        @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 -Each
 
         This example asserts that each value in the array has the flag 4 set.
         The `-Each` parameter enables element-by-element checking.
