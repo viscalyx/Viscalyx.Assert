@@ -5,6 +5,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Assert-BitwiseFlag`
+  - New command to assert that an integer value has specific bitwise flags set.
+    Supports integers, enums, and array processing with `-Each` parameter.
+    Alias: `Should-HaveFlag`.
+- `Assert-NotBitwiseFlag`
+  - New command to assert that an integer value does not have specific bitwise
+    flags set. Supports integers, enums, and array processing with `-Each`
+    parameter. Alias: `Should-NotHaveFlag`.
+- Added private function:
+  - `Test-BitwiseCompatible` - Tests whether a value can be used in bitwise
+    operations (integers and enums).
+
 ## [1.2.0] - 2025-10-04
 
 ### Added
