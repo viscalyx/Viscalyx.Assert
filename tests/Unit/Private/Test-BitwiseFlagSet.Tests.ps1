@@ -60,7 +60,7 @@ Describe 'Test-BitwiseFlagSet' {
             }
         }
 
-        It 'Should return $true when all bits match' {
+        It 'Should return $true with all bits matching' {
             InModuleScope -ScriptBlock {
                 $result = Test-BitwiseFlagSet -Value 7 -Flag 7
 
@@ -70,7 +70,7 @@ Describe 'Test-BitwiseFlagSet' {
     }
 
     Context 'When flag is not set' {
-        It 'Should return $false when flag is not present' {
+        It 'Should return $false with flag not present' {
             InModuleScope -ScriptBlock {
                 $result = Test-BitwiseFlagSet -Value 3 -Flag 4
 
@@ -78,7 +78,7 @@ Describe 'Test-BitwiseFlagSet' {
             }
         }
 
-        It 'Should return $false when only partial match' {
+        It 'Should return $false with only partial match' {
             InModuleScope -ScriptBlock {
                 $result = Test-BitwiseFlagSet -Value 5 -Flag 7
 
