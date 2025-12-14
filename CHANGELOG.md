@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Test-BitwiseCompatible` - Tests whether a value can be used in bitwise
     operations (integers and enums).
 
+### Changed
+
+- Bump action codeql-action/upload-sarif to v4
+- Bump action checkout to v6
+
 ## [1.2.0] - 2025-10-04
 
 ### Added
