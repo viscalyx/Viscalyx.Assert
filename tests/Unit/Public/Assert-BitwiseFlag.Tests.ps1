@@ -1,4 +1,4 @@
-System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Suppressing this rule because Script Analyzer does not understand Pester syntax.')]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Suppressing this rule because Script Analyzer does not understand Pester syntax.')]
 param ()
 
 BeforeDiscovery {
@@ -46,8 +46,20 @@ Describe 'Assert-BitwiseFlag' {
     Context 'When validating parameter sets' {
         It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach @(
             @{
-                ExpectedParameterSetName = '__AllParameterSets'
-                ExpectedParameters = '[-Flag] <Object> [-Actual] <Object> [-Because <string>] [-Each] [<CommonParameters>]'
+                ExpectedParameterSetName = 'Default'
+                ExpectedParameters = '[-Flag] <Object> [-Actual] <Object> [-Because <string>] [<CommonParameters>]'
+            }
+            @{
+                ExpectedParameterSetName = 'EachDefault'
+                ExpectedParameters = '[-Flag] <Object> [-Actual] <Object> -Each [-Because <string>] [<CommonParameters>]'
+            }
+            @{
+                ExpectedParameterSetName = 'EachAll'
+                ExpectedParameters = '[-Flag] <Object> [-Actual] <Object> -Each -All [-Because <string>] [<CommonParameters>]'
+            }
+            @{
+                ExpectedParameterSetName = 'EachAny'
+                ExpectedParameters = '[-Flag] <Object> [-Actual] <Object> -Each -Any [-Because <string>] [<CommonParameters>]'
             }
         ) {
             $result = (Get-Command -Name 'Assert-BitwiseFlag').ParameterSets |
@@ -62,15 +74,15 @@ Describe 'Assert-BitwiseFlag' {
         }
 
         It 'Should have Flag parameter as mandatory' {
-            (Get-Command -Name 'Assert-BitwiseFlag').Parameters['Flag'].Attributes.Mandatory | Should -Contain $true
+            (Get-Command -Name 'Assert-BitwiseFlag').Parameters['Flag'].Attributes.Mandatory | Should -BeTrue
         }
 
         It 'Should have Actual parameter as mandatory' {
-            (Get-Command -Name 'Assert-BitwiseFlag').Parameters['Actual'].Attributes.Mandatory | Should -Contain $true
+            (Get-Command -Name 'Assert-BitwiseFlag').Parameters['Actual'].Attributes.Mandatory | Should -BeTrue
         }
 
         It 'Should have Actual parameter accept pipeline input' {
-            (Get-Command -Name 'Assert-BitwiseFlag').Parameters['Actual'].Attributes.ValueFromPipeline | Should -Contain $true
+            (Get-Command -Name 'Assert-BitwiseFlag').Parameters['Actual'].Attributes.ValueFromPipeline | Should -BeTrue
         }
     }
 
@@ -113,14 +125,34 @@ Describe 'Assert-BitwiseFlag' {
     }
 
     Context 'When asserting flag on array with -Each parameter' {
-        It 'Should pass when all elements have the flag set' {
+        It 'Should pass when all elements have the flag set (default -All behavior)' {
             $values = @(7, 15, 23)
             $null = Assert-BitwiseFlag -Actual $values -Flag 4 -Each
         }
 
-        It 'Should throw when one element does not have the flag set' {
+        It 'Should pass when all elements have the flag set with -Each -All' {
+            $values = @(7, 15, 23)
+            $null = Assert-BitwiseFlag -Actual $values -Flag 4 -Each -All
+        }
+
+        It 'Should throw when one element does not have the flag set with -Each (default -All)' {
             $values = @(7, 3, 15)
             { Assert-BitwiseFlag -Actual $values -Flag 4 -Each } | Should -Throw -ExpectedMessage "*flag '4' set*not set on '3'*"
+        }
+
+        It 'Should throw when one element does not have the flag set with -Each -All' {
+            $values = @(7, 3, 15)
+            { Assert-BitwiseFlag -Actual $values -Flag 4 -Each -All } | Should -Throw -ExpectedMessage "*flag '4' set*not set on '3'*"
+        }
+
+        It 'Should pass when at least one element has the flag set with -Each -Any' {
+            $values = @(1, 7, 3)
+            $null = Assert-BitwiseFlag -Actual $values -Flag 4 -Each -Any
+        }
+
+        It 'Should throw when no elements have the flag set with -Each -Any' {
+            $values = @(1, 2, 3)
+            { Assert-BitwiseFlag -Actual $values -Flag 4 -Each -Any } | Should -Throw -ExpectedMessage "*at least one element*flag '4' set*"
         }
 
         It 'Should throw with empty array' {
@@ -144,6 +176,12 @@ Describe 'Assert-BitwiseFlag' {
         }
     }
 
+    Context 'When validating parameter combinations' {
+        It 'Should fail parameter binding when -All and -Any are used together' {
+            { Assert-BitwiseFlag -Actual @(7) -Flag 4 -Each -All -Any } | Should -Throw -ExpectedMessage "*parameter set*"
+        }
+    }
+
     Context 'When asserting flag on array without -Each parameter' {
         It 'Should throw when checking array object itself' {
             $values = @(7, 15, 23)
@@ -160,12 +198,17 @@ Describe 'Assert-BitwiseFlag' {
             { 3 | Assert-BitwiseFlag -Flag 4 } | Should -Throw
         }
 
-        It 'Should pass when piping array with -Each' {
+        It 'Should pass when piping array with -Each (default -All)' {
             $null = @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 -Each
         }
 
-        It 'Should throw when piping array without -Each' {
-            { @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 } | Should -Throw
+        It 'Should pass when piping array with -Each -All' {
+            $null = @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 -Each -All
+        }
+
+        It 'Should pass when piping last element of array without -Each' {
+            # When piping an array without -Each, only the last element is checked
+            $null = @(1, 2, 7) | Assert-BitwiseFlag -Flag 4
         }
 
         It 'Should unwrap single-element array without -Each' {
@@ -180,6 +223,27 @@ Describe 'Assert-BitwiseFlag' {
     Context 'When validating input types' {
         It 'Should throw when actual value is null' {
             { Assert-BitwiseFlag -Actual $null -Flag 4 } | Should -Throw
+        }
+
+        It 'Should throw when flag is null' {
+            # PowerShell parameter binding catches null before function code
+            { Assert-BitwiseFlag -Actual 7 -Flag $null } | Should -Throw
+        }
+
+        It 'Should throw when flag is string' {
+            { Assert-BitwiseFlag -Actual 7 -Flag 'test' } | Should -Throw -ExpectedMessage "*flag*bitwise-compatible type*"
+        }
+
+        It 'Should throw when flag is decimal' {
+            { Assert-BitwiseFlag -Actual 7 -Flag 123.45 } | Should -Throw -ExpectedMessage "*flag*bitwise-compatible type*"
+        }
+
+        It 'Should throw when flag is boolean' {
+            { Assert-BitwiseFlag -Actual 7 -Flag $true } | Should -Throw -ExpectedMessage "*flag*bitwise-compatible type*"
+        }
+
+        It 'Should throw when flag is hashtable' {
+            { Assert-BitwiseFlag -Actual 7 -Flag @{ Key = 'Value' } } | Should -Throw -ExpectedMessage "*flag*bitwise-compatible type*"
         }
 
         It 'Should throw when actual value is string' {

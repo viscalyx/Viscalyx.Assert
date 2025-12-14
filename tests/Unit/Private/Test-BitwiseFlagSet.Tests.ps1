@@ -1,11 +1,3 @@
-<#
-    .SYNOPSIS
-        Unit tests for the private function New-AssertionError.
-
-    .NOTES
-        This file is used to test the private function New-AssertionError.
-#>
-
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Suppressing this rule because Script Analyzer does not understand Pester syntax.')]
 param ()
 
@@ -50,54 +42,68 @@ AfterAll {
     Get-Module -Name $script:moduleName -All | Remove-Module -Force
 }
 
-Describe 'New-AssertionError' {
-    Context 'When creating an error without Because parameter' {
-        It 'Should create an error record with just the message' {
+Describe 'Test-BitwiseFlagSet' {
+    Context 'When flag is set' {
+        It 'Should return $true for single flag' {
             InModuleScope -ScriptBlock {
-                $message = 'Test error message'
+                $result = Test-BitwiseFlagSet -Value 7 -Flag 4
 
-                # Use $MyInvocation from the actual context
-                $result = & {
-                    param($msg)
-                    New-AssertionError -Message $msg -InvocationInfo $MyInvocation
-                } -msg $message
+                $result | Should -BeTrue
+            }
+        }
 
-                $result | Should -Not -BeNullOrEmpty
-                $result.Exception.Message | Should -Match $message
+        It 'Should return $true for multiple flags' {
+            InModuleScope -ScriptBlock {
+                $result = Test-BitwiseFlagSet -Value 15 -Flag 5
+
+                $result | Should -BeTrue
+            }
+        }
+
+        It 'Should return $true when all bits match' {
+            InModuleScope -ScriptBlock {
+                $result = Test-BitwiseFlagSet -Value 7 -Flag 7
+
+                $result | Should -BeTrue
             }
         }
     }
 
-    Context 'When creating an error with Because parameter' {
-        It 'Should append the Because clause to the message' {
+    Context 'When flag is not set' {
+        It 'Should return $false when flag is not present' {
             InModuleScope -ScriptBlock {
-                $message = 'Test error message'
-                $because = 'it is required'
+                $result = Test-BitwiseFlagSet -Value 3 -Flag 4
 
-                # Use $MyInvocation from the actual context
-                $result = & {
-                    param($msg, $becauseText)
-                    New-AssertionError -Message $msg -Because $becauseText -InvocationInfo $MyInvocation
-                } -msg $message -becauseText $because
+                $result | Should -BeFalse
+            }
+        }
 
-                $result | Should -Not -BeNullOrEmpty
-                $result.Exception.Message | Should -Match 'because it is required'
+        It 'Should return $false when only partial match' {
+            InModuleScope -ScriptBlock {
+                $result = Test-BitwiseFlagSet -Value 5 -Flag 7
+
+                $result | Should -BeFalse
+            }
+        }
+
+        It 'Should return $false for zero value' {
+            InModuleScope -ScriptBlock {
+                $result = Test-BitwiseFlagSet -Value 0 -Flag 1
+
+                $result | Should -BeFalse
             }
         }
     }
 
-    Context 'When testing error record type' {
-        It 'Should return an ErrorRecord object' {
+    Context 'When working with large values' {
+        It 'Should handle Int64 values correctly' {
             InModuleScope -ScriptBlock {
-                $message = 'Test error message'
+                $largeValue = [Int64]::MaxValue
+                $flag = 1
 
-                # Use $MyInvocation from the actual context
-                $result = & {
-                    param($msg)
-                    New-AssertionError -Message $msg -InvocationInfo $MyInvocation
-                } -msg $message
+                $result = Test-BitwiseFlagSet -Value $largeValue -Flag $flag
 
-                $result | Should -BeOfType [System.Management.Automation.ErrorRecord]
+                $result | Should -BeTrue
             }
         }
     }

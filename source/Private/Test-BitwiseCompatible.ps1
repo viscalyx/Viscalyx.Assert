@@ -1,5 +1,5 @@
 <#
-    . SYNOPSIS
+    .SYNOPSIS
         Tests whether a value can be used in bitwise operations.
 
     .DESCRIPTION
@@ -10,20 +10,22 @@
         The value to test for bitwise compatibility.
 
     .INPUTS
-        None.  This function does not accept pipeline input.
+        None.
 
-    . OUTPUTS
+        This function does not accept pipeline input.
+
+    .OUTPUTS
         System.Boolean
 
         Returns $true if the value can be used in bitwise operations, $false otherwise.
 
-    . EXAMPLE
+    .EXAMPLE
         Test-BitwiseCompatible -Value 42
 
         Returns $true because integers support bitwise operations.
 
     .EXAMPLE
-        Test-BitwiseCompatible -Value [System.IO.FileAttributes]:: ReadOnly
+        Test-BitwiseCompatible -Value [System.IO.FileAttributes]::ReadOnly
 
         Returns $true because enums support bitwise operations.
 #>

@@ -222,7 +222,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
     }
 
     Context 'When processing multiple values in pipeline' {
-        It 'Should validate flags are not set on multiple values' {
+        It 'Should validate flags are not set on multiple values with -Each -All' {
             # Simulate guest account permissions (all should have only read)
             $guestPermissions = @(
                 0b001,  # Read only
@@ -231,10 +231,10 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate that no guest has write permission
-            $guestPermissions | Should-NotHaveFlag -Flag 0b010 -Each
+            $guestPermissions | Should-NotHaveFlag -Flag 0b010 -Each -All
         }
 
-        It 'Should validate administrative flags are not set on user accounts' {
+        It 'Should validate administrative flags are not set on user accounts with -Each -All' {
             # Simulate multiple user permissions
             $userPermissions = @(
                 0b0011,  # Read and write
@@ -243,10 +243,10 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate that no user has admin flag (0b1000)
-            $userPermissions | Should-NotHaveFlag -Flag 0b1000 -Each
+            $userPermissions | Should-NotHaveFlag -Flag 0b1000 -Each -All
         }
 
-        It 'Should validate dangerous flags are not present in any configuration' {
+        It 'Should validate dangerous flags are not present in any configuration with -Each -All' {
             # Simulate multiple configuration sets
             $configurations = @(
                 0b00001111,  # Safe features
@@ -255,7 +255,19 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate dangerous flag (0b10000000) is not present in any config
-            $configurations | Should-NotHaveFlag -Flag 0b10000000 -Each
+            $configurations | Should-NotHaveFlag -Flag 0b10000000 -Each -All
+        }
+
+        It 'Should validate at least one value does not have flag with -Each -Any' {
+            # Simulate multiple permission sets
+            $permissions = @(
+                0b111,  # Read, Write, Execute
+                0b001,  # Read only (no execute)
+                0b111   # Read, Write, Execute
+            )
+
+            # Validate at least one user does not have execute permission
+            Should-NotHaveFlag -Actual $permissions -Flag 0b100 -Each -Any
         }
     }
 

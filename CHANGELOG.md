@@ -8,16 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `Assert-BitwiseFlag`
-  - New command to assert that an integer value has specific bitwise flags set.
-    Supports integers, enums, and array processing with `-Each` parameter.
-    Alias: `Should-HaveFlag`.
+  - New command to assert that an integer value has does not have a specific
+    bitwise flags set. Supports integers, enums, and array processing with
+    `-Each` parameter. Alias: `Should-HaveFlag`.
+  - Added `-All` parameter to require all array elements have the flag set (default
+    behavior when used with `-Each`).
+  - Added `-Any` parameter to require at least one array element has the flag set
+    when used with `-Each`.
 - `Assert-NotBitwiseFlag`
   - New command to assert that an integer value does not have specific bitwise
     flags set. Supports integers, enums, and array processing with `-Each`
     parameter. Alias: `Should-NotHaveFlag`.
-- Added private function:
+  - Added `-All` parameter to require all array elements do not have the flag set
+    (default behavior when used with `-Each`).
+  - Added `-Any` parameter to require at least one array element does not have
+    the flag set when used with `-Each`.
+
+### Changed
+
+- Added private functions:
+  - `ConvertTo-BitwiseFlagValue` - Validates and converts a value to Int64 for
+    bitwise operations.
+  - `Get-ProcessedPipelineInput` - Processes pipeline input for assertion
+    commands, handling single-element array unwrapping.
   - `Test-BitwiseCompatible` - Tests whether a value can be used in bitwise
     operations (integers and enums).
+  - `Test-BitwiseFlagSet` - Tests if a value has specific bitwise flags set.
 
 ### Changed
 

@@ -96,7 +96,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $enabledFeatures | Should-HaveFlag -Flag 0b1000  # FeatureD
         }
 
-        It 'Should validate multiple feature flags using array with -Each' {
+        It 'Should validate multiple feature flags using array with -Each -All' {
             # Simulate multiple configuration objects
             $configs = @(
                 0b1111,  # All features enabled
@@ -105,7 +105,19 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate that all configs have FeatureC (bit 2: 0b0100) enabled
-            $configs | Should-HaveFlag -Flag 0b0100 -Each
+            $configs | Should-HaveFlag -Flag 0b0100 -Each -All
+        }
+
+        It 'Should validate at least one feature flag using array with -Each -Any' {
+            # Simulate multiple configuration objects
+            $configs = @(
+                0b0001,  # Only FeatureA enabled
+                0b0110,  # Features B, C enabled
+                0b1000   # Only FeatureD enabled
+            )
+
+            # Validate that at least one config has FeatureC (bit 2: 0b0100) enabled
+            Should-HaveFlag -Actual $configs -Flag 0b0100 -Each -Any
         }
     }
 
@@ -205,7 +217,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
     }
 
     Context 'When processing multiple values in pipeline' {
-        It 'Should validate flags on multiple permission sets' {
+        It 'Should validate flags on multiple permission sets with -Each -All' {
             # Simulate multiple permission sets for different users
             $userPermissions = @(
                 0b111,  # Read, Write, Execute
@@ -214,7 +226,19 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate all users have read permission
-            $userPermissions | Should-HaveFlag -Flag 0b001 -Each
+            $userPermissions | Should-HaveFlag -Flag 0b001 -Each -All
+        }
+
+        It 'Should validate at least one user has permission with -Each -Any' {
+            # Simulate multiple permission sets for different users
+            $userPermissions = @(
+                0b001,  # Read only
+                0b111,  # Read, Write, Execute
+                0b001   # Read only
+            )
+
+            # Validate at least one user has execute permission
+            Should-HaveFlag -Actual $userPermissions -Flag 0b100 -Each -Any
         }
     }
 }

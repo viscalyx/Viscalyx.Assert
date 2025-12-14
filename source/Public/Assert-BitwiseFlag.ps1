@@ -20,9 +20,19 @@
         An optional reason or explanation for the assertion.
 
     .PARAMETER Each
-        When specified and the input is an array, asserts that each element in
-        the array has the specified flag set. Without this parameter, the
-        assertion checks the array object itself.
+        When specified and the input is an array, the command iterates through
+        each element in the array. Use with -All or -Any to specify validation
+        requirements. Without this parameter, the assertion checks the array
+        object itself.
+
+    .PARAMETER All
+        When used with -Each, requires that all elements in the array have the
+        specified flag set. This is the default behavior when -Each is used
+        without -Any.
+
+    .PARAMETER Any
+        When used with -Each, requires that at least one element in the array
+        has the specified flag set. Cannot be used together with -All.
 
     .INPUTS
         System.Object
@@ -53,107 +63,125 @@
         (0x04) set, providing a reason for the assertion.
 
     .EXAMPLE
-        @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 -Each
+        @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 -Each -All
 
-        This example asserts that each value in the array has the flag 4 set.
-        The `-Each` parameter enables element-by-element checking.
+        This example asserts that all values in the array have the flag 4 set.
+        The `-Each -All` combination checks every element.
+
+    .EXAMPLE
+        @(1, 7, 3) | Assert-BitwiseFlag -Flag 4 -Each -Any
+
+        This example asserts that at least one value in the array has the flag 4
+        set. This will pass because 7 has the flag 4 set.
 #>
 function Assert-BitwiseFlag
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('UseSyntacticallyCorrectExamples', '', Justification = 'Because the examples are syntactically correct. The rule does not seem to understand that there is pipeline input.')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '')]
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidThrowOutsideOfTry', '')]
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Default')]
     [Alias('Should-HaveFlag')]
     [OutputType()]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true)]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'Default')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'EachDefault')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'EachAll')]
+        [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'EachAny')]
         [System.Object]
         $Flag,
 
-        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true)]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'Default')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'EachDefault')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'EachAll')]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'EachAny')]
         [System.Object]
         $Actual,
 
-        [Parameter()]
+        [Parameter(ParameterSetName = 'Default')]
+        [Parameter(ParameterSetName = 'EachDefault')]
+        [Parameter(ParameterSetName = 'EachAll')]
+        [Parameter(ParameterSetName = 'EachAny')]
         [ValidateNotNullOrEmpty()]
         [System.String]
         $Because,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true, ParameterSetName = 'EachDefault')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'EachAll')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'EachAny')]
         [System.Management.Automation.SwitchParameter]
-        $Each
+        $Each,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'EachAll')]
+        [System.Management.Automation.SwitchParameter]
+        $All,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'EachAny')]
+        [System.Management.Automation.SwitchParameter]
+        $Any
     )
 
-    $hasPipelineInput = $MyInvocation.ExpectingInput
+    $processedInput = Get-ProcessedPipelineInput -InvocationInfo $MyInvocation -Each:$Each
 
-    if ($hasPipelineInput)
+    if ($null -ne $processedInput)
     {
-        $Actual = @($local:Input)
-
-        # If we're not using -Each and we have a single-element array, unwrap it
-        if (-not $Each.IsPresent -and $Actual.Count -eq 1)
-        {
-            $Actual = $Actual[0]
-        }
+        $Actual = $processedInput
     }
 
-    # Convert flag to integer for bitwise operations
-    $flagValue = [System.Int64] $Flag
+    # Validate and convert flag to integer for bitwise operations
+    $flagValue = ConvertTo-BitwiseFlagValue -Value $Flag -ParameterName 'Flag' -Because $Because -InvocationInfo $MyInvocation
 
     # If Each is specified and we have an array, iterate through each element
     if ($Each.IsPresent -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
     {
+        # Default to -All if neither -All nor -Any is specified
+        $useAny = $Any.IsPresent
+        $anyFound = $false
+
         foreach ($currentValue in $Actual)
         {
-            # Check if the current value is null
-            if ($null -eq $currentValue)
-            {
-                $message = $script:localizedData.Assert_BitwiseFlag_ActualIsNull
-                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
-            }
+            $actualIntValue = ConvertTo-BitwiseFlagValue -Value $currentValue -ParameterName 'Actual' -Because $Because -InvocationInfo $MyInvocation
+            $hasFlagSet = Test-BitwiseFlagSet -Value $actualIntValue -Flag $flagValue
 
-            # Validate that the value can be used in bitwise operations
-            if (-not (Test-BitwiseCompatible -Value $currentValue))
+            if ($useAny)
             {
-                $message = $script:localizedData.Assert_BitwiseFlag_InvalidType -f $currentValue.GetType().FullName
-                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
+                # For -Any, we just need to find one match
+                if ($hasFlagSet)
+                {
+                    $anyFound = $true
+                    break
+                }
             }
-
-            $actualIntValue = [System.Int64] $currentValue
-            $hasFlagSet = ($actualIntValue -band $flagValue) -eq $flagValue
-
-            if (-not $hasFlagSet)
+            else
             {
-                $message = $script:localizedData.Assert_BitwiseFlag_FlagNotSet -f $Flag, $currentValue
-                throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
+                # For -All (default), all must match
+                if (-not $hasFlagSet)
+                {
+                    $message = $script:localizedData.Assert_BitwiseFlag_FlagNotSet -f $Flag, $currentValue
+
+                    throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
+                }
             }
+        }
+
+        # If using -Any and no match was found, throw error
+        if ($useAny -and -not $anyFound)
+        {
+            $message = $script:localizedData.Assert_BitwiseFlag_NoElementHasFlag -f $Flag
+
+            throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }
     }
     else
     {
         # Single value case (not an array or empty array)
-        # Check if the actual value is null
-        if ($null -eq $Actual)
-        {
-            $message = $script:localizedData.Assert_BitwiseFlag_ActualIsNull
-            throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
-        }
-
-        # Validate that the value can be used in bitwise operations
-        if (-not (Test-BitwiseCompatible -Value $Actual))
-        {
-            $message = $script:localizedData.Assert_BitwiseFlag_InvalidType -f $Actual.GetType().FullName
-            throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
-        }
-
-        $actualIntValue = [System.Int64] $Actual
-        $hasFlagSet = ($actualIntValue -band $flagValue) -eq $flagValue
+        $actualIntValue = ConvertTo-BitwiseFlagValue -Value $Actual -ParameterName 'Actual' -Because $Because -InvocationInfo $MyInvocation
+        $hasFlagSet = Test-BitwiseFlagSet -Value $actualIntValue -Flag $flagValue
 
         if (-not $hasFlagSet)
         {
             $message = $script:localizedData.Assert_BitwiseFlag_FlagNotSet -f $Flag, $Actual
+
             throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }
     }
