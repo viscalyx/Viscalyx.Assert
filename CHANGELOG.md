@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New command to assert that a value has the specified bitwise flag set.
     Supports integers, enums, and array processing with `-Each` parameter.
     Alias: `Should-HaveFlag`.
-  - Added `-All` parameter to require all array elements have the flag set (default
-    behavior when used with `-Each`).
+  - Added `-All` parameter to require all array elements have the flag set
+    (default behavior when used with `-Each`).
   - Added `-Any` parameter to require at least one array element has the flag set
     when used with `-Each`.
 - `Assert-NotBitwiseFlag`
