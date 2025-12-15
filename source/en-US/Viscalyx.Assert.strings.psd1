@@ -33,9 +33,7 @@ ConvertFrom-StringData @'
     Test_ObjectType_GetTypeFailed = Failed to get type information for the {0} value. The object may not support the GetType() method. Use the -NoTypeCheck parameter to skip strict type checking. (TOT0001)
 
     ## New localized strings for Assert-BitwiseFlag
-    Assert_BitwiseFlag_ActualIsNull = Expected the actual value not to be null, but it was null.
-    Assert_BitwiseFlag_InvalidType = Expected the value to be a bitwise-compatible type (integer or enum), but the type was '{0}'.
-    Assert_BitwiseFlag_InvalidFlagType = Expected the flag to be a bitwise-compatible type (integer or enum), but the type was '{0}'.
+    Assert_BitwiseFlag_InvalidType = Expected parameter {0} to be a bitwise-compatible type (integer or enum), but the type was '{1}'.
     Assert_BitwiseFlag_FlagNotSet = Expected the value to have flag '{0}' set, but it was not set on '{1}'.
     Assert_BitwiseFlag_FlagShouldNotBeSet = Expected the value NOT to have flag '{0}' set, but it was set on '{1}'.
     Assert_BitwiseFlag_NoElementHasFlag = Expected at least one element to have flag '{0}' set, but none of the elements had the flag set.

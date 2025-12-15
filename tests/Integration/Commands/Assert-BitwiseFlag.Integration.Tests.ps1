@@ -41,7 +41,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $fileAttributes = [System.IO.FileAttributes]::ReadOnly -bor [System.IO.FileAttributes]::Archive
 
             # This demonstrates using Assert-BitwiseFlag for file attribute validation
-            $fileAttributes | Should-HaveFlag -Flag ([System.IO.FileAttributes]::ReadOnly)
+            $fileAttributes | Should-HaveFlag -Expected ([System.IO.FileAttributes]::ReadOnly)
         }
 
         It 'Should validate multiple file attributes are set' {
@@ -49,9 +49,9 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $fileAttributes = [System.IO.FileAttributes]::ReadOnly -bor [System.IO.FileAttributes]::Hidden -bor [System.IO.FileAttributes]::System
 
             # Check each flag individually
-            $fileAttributes | Should-HaveFlag -Flag ([System.IO.FileAttributes]::ReadOnly)
-            $fileAttributes | Should-HaveFlag -Flag ([System.IO.FileAttributes]::Hidden)
-            $fileAttributes | Should-HaveFlag -Flag ([System.IO.FileAttributes]::System)
+            $fileAttributes | Should-HaveFlag -Expected ([System.IO.FileAttributes]::ReadOnly)
+            $fileAttributes | Should-HaveFlag -Expected ([System.IO.FileAttributes]::Hidden)
+            $fileAttributes | Should-HaveFlag -Expected ([System.IO.FileAttributes]::System)
         }
 
         It 'Should validate combined file attributes flags' {
@@ -60,7 +60,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
 
             # Check that both ReadOnly and Hidden are set together
             $combinedFlags = [System.IO.FileAttributes]::ReadOnly -bor [System.IO.FileAttributes]::Hidden
-            $fileAttributes | Should-HaveFlag -Flag $combinedFlags
+            $fileAttributes | Should-HaveFlag -Expected $combinedFlags
         }
     }
 
@@ -70,7 +70,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $permissions = 0x1ED
 
             # Check read permission for owner (bit 8: 0400 octal = 256 decimal = 0x100)
-            $permissions | Should-HaveFlag -Flag 0x100
+            $permissions | Should-HaveFlag -Expected 0x100
         }
 
         It 'Should validate execute permission is set for all users' {
@@ -78,9 +78,9 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $permissions = 0x1ED
 
             # Check execute permission for owner, group, and others
-            $permissions | Should-HaveFlag -Flag 0x40  # Owner execute (64 decimal)
-            $permissions | Should-HaveFlag -Flag 0x08  # Group execute (8 decimal)
-            $permissions | Should-HaveFlag -Flag 0x01  # Others execute (1 decimal)
+            $permissions | Should-HaveFlag -Expected 0x40  # Owner execute (64 decimal)
+            $permissions | Should-HaveFlag -Expected 0x08  # Group execute (8 decimal)
+            $permissions | Should-HaveFlag -Expected 0x01  # Others execute (1 decimal)
         }
     }
 
@@ -91,9 +91,9 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $enabledFeatures = 0b1011  # Features A, B, and D are enabled
 
             # Validate specific features are enabled
-            $enabledFeatures | Should-HaveFlag -Flag 0b0001  # FeatureA
-            $enabledFeatures | Should-HaveFlag -Flag 0b0010  # FeatureB
-            $enabledFeatures | Should-HaveFlag -Flag 0b1000  # FeatureD
+            $enabledFeatures | Should-HaveFlag -Expected 0b0001  # FeatureA
+            $enabledFeatures | Should-HaveFlag -Expected 0b0010  # FeatureB
+            $enabledFeatures | Should-HaveFlag -Expected 0b1000  # FeatureD
         }
 
         It 'Should validate multiple feature flags using array with -Each -All' {
@@ -105,7 +105,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate that all configs have FeatureC (bit 2: 0b0100) enabled
-            $configs | Should-HaveFlag -Flag 0b0100 -Each -All
+            $configs | Should-HaveFlag -Expected 0b0100 -Each -All
         }
 
         It 'Should validate at least one feature flag using array with -Each -Any' {
@@ -117,7 +117,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate that at least one config has FeatureC (bit 2: 0b0100) enabled
-            Should-HaveFlag -Actual $configs -Flag 0b0100 -Each -Any
+            Should-HaveFlag -Actual $configs -Expected 0b0100 -Each -Any
         }
     }
 
@@ -127,10 +127,10 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $bindingFlags = [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Instance
 
             # Validate that Public flag is set
-            $bindingFlags | Should-HaveFlag -Flag ([System.Reflection.BindingFlags]::Public)
+            $bindingFlags | Should-HaveFlag -Expected ([System.Reflection.BindingFlags]::Public)
 
             # Validate that Instance flag is set
-            $bindingFlags | Should-HaveFlag -Flag ([System.Reflection.BindingFlags]::Instance)
+            $bindingFlags | Should-HaveFlag -Expected ([System.Reflection.BindingFlags]::Instance)
         }
 
         It 'Should validate System.Text.RegularExpressions.RegexOptions' {
@@ -138,8 +138,8 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $regexOptions = [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline
 
             # Validate specific options are set
-            $regexOptions | Should-HaveFlag -Flag ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
-            $regexOptions | Should-HaveFlag -Flag ([System.Text.RegularExpressions.RegexOptions]::Multiline)
+            $regexOptions | Should-HaveFlag -Expected ([System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+            $regexOptions | Should-HaveFlag -Expected ([System.Text.RegularExpressions.RegexOptions]::Multiline)
         }
     }
 
@@ -150,10 +150,10 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $tcpFlags = 0x12  # SYN + ACK
 
             # Validate SYN flag is set
-            $tcpFlags | Should-HaveFlag -Flag 0x02
+            $tcpFlags | Should-HaveFlag -Expected 0x02
 
             # Validate ACK flag is set
-            $tcpFlags | Should-HaveFlag -Flag 0x10
+            $tcpFlags | Should-HaveFlag -Expected 0x10
         }
 
         It 'Should validate IP protocol flags' {
@@ -161,7 +161,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $ipFlags = 0x4000  # Don't Fragment set
 
             # Validate Don't Fragment is set
-            $ipFlags | Should-HaveFlag -Flag 0x4000
+            $ipFlags | Should-HaveFlag -Expected 0x4000
         }
     }
 
@@ -172,9 +172,9 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $testOptions = 11  # ParallelExecution + VerboseOutput + GenerateCoverage (1+2+8)
 
             # Validate specific options are enabled
-            $testOptions | Should-HaveFlag -Flag 1  # ParallelExecution
-            $testOptions | Should-HaveFlag -Flag 2  # VerboseOutput
-            $testOptions | Should-HaveFlag -Flag 8  # GenerateCoverage
+            $testOptions | Should-HaveFlag -Expected 1  # ParallelExecution
+            $testOptions | Should-HaveFlag -Expected 2  # VerboseOutput
+            $testOptions | Should-HaveFlag -Expected 8  # GenerateCoverage
         }
     }
 
@@ -184,11 +184,11 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $userPermissions = 0b0001  # Only read permission
 
             # This will pass
-            $userPermissions | Should-HaveFlag -Flag 0b0001 -Because 'users must have read access to view reports'
+            $userPermissions | Should-HaveFlag -Expected 0b0001 -Because 'users must have read access to view reports'
 
             # This would fail with descriptive message
             {
-                $userPermissions | Should-HaveFlag -Flag 0b0010 -Because 'users must have write access to create reports'
+                $userPermissions | Should-HaveFlag -Expected 0b0010 -Because 'users must have write access to create reports'
             } | Should-Throw -Because 'the error should mention the business context'
         }
     }
@@ -199,10 +199,10 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $largeValue = [System.Int64]0x8000000000000001
 
             # Check that high bit is set
-            $largeValue | Should-HaveFlag -Flag ([System.Int64]0x8000000000000000)
+            $largeValue | Should-HaveFlag -Expected ([System.Int64]0x8000000000000000)
 
             # Check that low bit is set
-            $largeValue | Should-HaveFlag -Flag 1
+            $largeValue | Should-HaveFlag -Expected 1
         }
 
         It 'Should handle large unsigned 64-bit values' {
@@ -210,9 +210,9 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             $largeValue = [System.UInt64]0x0FFFFFFFFFFFFFFF
 
             # Multiple flags should be set
-            $largeValue | Should-HaveFlag -Flag 0xFF
-            $largeValue | Should-HaveFlag -Flag 0xFFFF
-            $largeValue | Should-HaveFlag -Flag ([System.Int64]0x0FFFFFFF00000000)
+            $largeValue | Should-HaveFlag -Expected 0xFF
+            $largeValue | Should-HaveFlag -Expected 0xFFFF
+            $largeValue | Should-HaveFlag -Expected ([System.Int64]0x0FFFFFFF00000000)
         }
     }
 
@@ -226,7 +226,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate all users have read permission
-            $userPermissions | Should-HaveFlag -Flag 0b001 -Each -All
+            $userPermissions | Should-HaveFlag -Expected 0b001 -Each -All
         }
 
         It 'Should validate at least one user has permission with -Each -Any' {
@@ -238,7 +238,7 @@ Describe 'Assert-BitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate at least one user has execute permission
-            Should-HaveFlag -Actual $userPermissions -Flag 0b100 -Each -Any
+            Should-HaveFlag -Actual $userPermissions -Expected 0b100 -Each -Any
         }
     }
 }

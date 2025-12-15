@@ -23,12 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (default behavior when used with `-Each`).
   - Added `-Any` parameter to require at least one array element does not have
     the flag set when used with `-Each`.
-
-### Changed
-
 - Added private functions:
-  - `ConvertTo-BitwiseFlagValue` - Validates and converts a value to Int64 for
-    bitwise operations.
+  - `Assert-BitwiseType` - Validates that a value is compatible with bitwise
+    operations (integer or enum type).
   - `Get-ProcessedPipelineInput` - Processes pipeline input for assertion
     commands, handling single-element array unwrapping.
   - `Test-BitwiseCompatible` - Tests whether a value can be used in bitwise

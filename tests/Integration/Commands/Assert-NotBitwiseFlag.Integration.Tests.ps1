@@ -41,7 +41,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $fileAttributes = [System.IO.FileAttributes]::ReadOnly -bor [System.IO.FileAttributes]::Archive
 
             # This demonstrates using Assert-NotBitwiseFlag for file attribute validation
-            $fileAttributes | Should-NotHaveFlag -Flag ([System.IO.FileAttributes]::Hidden)
+            $fileAttributes | Should-NotHaveFlag -Expected ([System.IO.FileAttributes]::Hidden)
         }
 
         It 'Should validate multiple file attributes are not set' {
@@ -49,8 +49,8 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $fileAttributes = [System.IO.FileAttributes]::ReadOnly
 
             # Check that Hidden and System flags are not set
-            $fileAttributes | Should-NotHaveFlag -Flag ([System.IO.FileAttributes]::Hidden)
-            $fileAttributes | Should-NotHaveFlag -Flag ([System.IO.FileAttributes]::System)
+            $fileAttributes | Should-NotHaveFlag -Expected ([System.IO.FileAttributes]::Hidden)
+            $fileAttributes | Should-NotHaveFlag -Expected ([System.IO.FileAttributes]::System)
         }
 
         It 'Should validate specific combination of flags is not present' {
@@ -59,7 +59,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
 
             # Check that both Hidden and System are not both set together
             $combinedFlags = [System.IO.FileAttributes]::Hidden -bor [System.IO.FileAttributes]::System
-            $fileAttributes | Should-NotHaveFlag -Flag $combinedFlags
+            $fileAttributes | Should-NotHaveFlag -Expected $combinedFlags
         }
     }
 
@@ -69,7 +69,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $permissions = 0755
 
             # Check that write permission for group (bit 4: 0020 in octal) is not set
-            $permissions | Should-NotHaveFlag -Flag 0020
+            $permissions | Should-NotHaveFlag -Expected 0020
         }
 
         It 'Should validate write permission is not set for others' {
@@ -77,7 +77,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $permissions = 0750
 
             # Check that any permission for others is not set
-            $permissions | Should-NotHaveFlag -Flag 0007
+            $permissions | Should-NotHaveFlag -Expected 0007
         }
 
         It 'Should validate setuid bit is not set' {
@@ -85,7 +85,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $permissions = 0755
 
             # Check that setuid bit (04000) is not set
-            $permissions | Should-NotHaveFlag -Flag 04000
+            $permissions | Should-NotHaveFlag -Expected 04000
         }
     }
 
@@ -95,7 +95,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $enabledFeatures = 0b1011  # Features A, B, and D are enabled
 
             # Validate FeatureC (bit 2: 0b0100) is not enabled
-            $enabledFeatures | Should-NotHaveFlag -Flag 0b0100
+            $enabledFeatures | Should-NotHaveFlag -Expected 0b0100
         }
 
         It 'Should validate multiple features are disabled' {
@@ -103,8 +103,8 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $enabledFeatures = 0b0011  # Only Features A and B are enabled
 
             # Validate FeatureC and FeatureD are not enabled
-            $enabledFeatures | Should-NotHaveFlag -Flag 0b0100  # FeatureC
-            $enabledFeatures | Should-NotHaveFlag -Flag 0b1000  # FeatureD
+            $enabledFeatures | Should-NotHaveFlag -Expected 0b0100  # FeatureC
+            $enabledFeatures | Should-NotHaveFlag -Expected 0b1000  # FeatureD
         }
 
         It 'Should validate deprecated feature is not enabled' {
@@ -112,7 +112,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $enabledFeatures = 0b00001111  # First 4 features enabled
 
             # Validate deprecated feature (bit 5: 0b00010000) is not enabled
-            $enabledFeatures | Should-NotHaveFlag -Flag 0b00010000
+            $enabledFeatures | Should-NotHaveFlag -Expected 0b00010000
         }
     }
 
@@ -122,7 +122,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $bindingFlags = [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Instance
 
             # Validate that Static flag is not set
-            $bindingFlags | Should-NotHaveFlag -Flag ([System.Reflection.BindingFlags]::Static)
+            $bindingFlags | Should-NotHaveFlag -Expected ([System.Reflection.BindingFlags]::Static)
         }
 
         It 'Should validate System.Text.RegularExpressions.RegexOptions does not have unwanted flags' {
@@ -130,10 +130,10 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $regexOptions = [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Multiline
 
             # Validate that Singleline option is not set
-            $regexOptions | Should-NotHaveFlag -Flag ([System.Text.RegularExpressions.RegexOptions]::Singleline)
+            $regexOptions | Should-NotHaveFlag -Expected ([System.Text.RegularExpressions.RegexOptions]::Singleline)
 
             # Validate that ExplicitCapture is not set
-            $regexOptions | Should-NotHaveFlag -Flag ([System.Text.RegularExpressions.RegexOptions]::ExplicitCapture)
+            $regexOptions | Should-NotHaveFlag -Expected ([System.Text.RegularExpressions.RegexOptions]::ExplicitCapture)
         }
     }
 
@@ -144,7 +144,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $tcpFlags = 0x12  # SYN + ACK
 
             # Validate FIN flag is not set
-            $tcpFlags | Should-NotHaveFlag -Flag 0x01
+            $tcpFlags | Should-NotHaveFlag -Expected 0x01
         }
 
         It 'Should validate TCP RST flag is not set in normal communication' {
@@ -152,7 +152,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $tcpFlags = 0x18  # ACK + PSH
 
             # Validate RST flag is not set
-            $tcpFlags | Should-NotHaveFlag -Flag 0x04
+            $tcpFlags | Should-NotHaveFlag -Expected 0x04
         }
 
         It 'Should validate IP More Fragments flag is not set' {
@@ -160,7 +160,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $ipFlags = 0x4000
 
             # Validate More Fragments is not set
-            $ipFlags | Should-NotHaveFlag -Flag 0x2000
+            $ipFlags | Should-NotHaveFlag -Expected 0x2000
         }
     }
 
@@ -170,7 +170,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $testOptions = 11  # ParallelExecution + VerboseOutput + GenerateCoverage (1+2+8)
 
             # Validate StopOnFailure is not enabled
-            $testOptions | Should-NotHaveFlag -Flag 4
+            $testOptions | Should-NotHaveFlag -Expected 4
         }
 
         It 'Should validate debug mode is not enabled' {
@@ -178,8 +178,8 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $testOptions = 1  # Only ParallelExecution
 
             # Validate debug flags are not enabled
-            $testOptions | Should-NotHaveFlag -Flag 16  # DebugMode
-            $testOptions | Should-NotHaveFlag -Flag 32  # VerboseDebug
+            $testOptions | Should-NotHaveFlag -Expected 16  # DebugMode
+            $testOptions | Should-NotHaveFlag -Expected 32  # VerboseDebug
         }
     }
 
@@ -190,7 +190,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
 
             # This would fail with descriptive message
             {
-                $guestPermissions | Should-NotHaveFlag -Flag 0b0100 -Because 'guest users should not have execute permission'
+                $guestPermissions | Should-NotHaveFlag -Expected 0b0100 -Because 'guest users should not have execute permission'
             } | Should-Throw -Because 'the error should mention the security context'
         }
 
@@ -199,7 +199,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $userPermissions = 0b0001  # Only read permission
 
             # This will pass
-            $userPermissions | Should-NotHaveFlag -Flag 0b1000 -Because 'regular users should not have admin privileges'
+            $userPermissions | Should-NotHaveFlag -Expected 0b1000 -Because 'regular users should not have admin privileges'
         }
     }
 
@@ -209,7 +209,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $largeValue = [System.Int64]0x0000000000000001
 
             # Check that high bit is not set
-            $largeValue | Should-NotHaveFlag -Flag ([System.Int64]0x8000000000000000)
+            $largeValue | Should-NotHaveFlag -Expected ([System.Int64]0x8000000000000000)
         }
 
         It 'Should validate specific bits are not set in large values' {
@@ -217,7 +217,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $value = [System.Int64]0x00000000FFFFFFFF
 
             # Validate high 32 bits are not set
-            $value | Should-NotHaveFlag -Flag ([System.Int64]0xFFFF000000000000)
+            $value | Should-NotHaveFlag -Expected ([System.Int64]0xFFFF000000000000)
         }
     }
 
@@ -231,7 +231,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate that no guest has write permission
-            $guestPermissions | Should-NotHaveFlag -Flag 0b010 -Each -All
+            $guestPermissions | Should-NotHaveFlag -Expected 0b010 -Each -All
         }
 
         It 'Should validate administrative flags are not set on user accounts with -Each -All' {
@@ -243,7 +243,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate that no user has admin flag (0b1000)
-            $userPermissions | Should-NotHaveFlag -Flag 0b1000 -Each -All
+            $userPermissions | Should-NotHaveFlag -Expected 0b1000 -Each -All
         }
 
         It 'Should validate dangerous flags are not present in any configuration with -Each -All' {
@@ -255,7 +255,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate dangerous flag (0b10000000) is not present in any config
-            $configurations | Should-NotHaveFlag -Flag 0b10000000 -Each -All
+            $configurations | Should-NotHaveFlag -Expected 0b10000000 -Each -All
         }
 
         It 'Should validate at least one value does not have flag with -Each -Any' {
@@ -267,7 +267,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             )
 
             # Validate at least one user does not have execute permission
-            Should-NotHaveFlag -Actual $permissions -Flag 0b100 -Each -Any
+            Should-NotHaveFlag -Actual $permissions -Expected 0b100 -Each -Any
         }
     }
 
@@ -277,7 +277,7 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $normalUserPerms = 0x0001  # Read only
 
             # Ensure admin bit is not set
-            $normalUserPerms | Should-NotHaveFlag -Flag 0x8000 -Because 'normal users should never have admin privileges'
+            $normalUserPerms | Should-NotHaveFlag -Expected 0x8000 -Because 'normal users should never have admin privileges'
         }
 
         It 'Should validate write access is properly restricted' {
@@ -285,8 +285,8 @@ Describe 'Assert-NotBitwiseFlag' -Tag @('Integration') {
             $readOnlyAccess = 0x0004  # Read permission
 
             # Ensure write and delete are not granted
-            $readOnlyAccess | Should-NotHaveFlag -Flag 0x0002 -Because 'read-only users cannot have write access'
-            $readOnlyAccess | Should-NotHaveFlag -Flag 0x0008 -Because 'read-only users cannot have delete access'
+            $readOnlyAccess | Should-NotHaveFlag -Expected 0x0002 -Because 'read-only users cannot have write access'
+            $readOnlyAccess | Should-NotHaveFlag -Expected 0x0008 -Because 'read-only users cannot have delete access'
         }
     }
 }

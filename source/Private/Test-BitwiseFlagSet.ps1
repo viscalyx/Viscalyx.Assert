@@ -10,7 +10,7 @@
     .PARAMETER Value
         The value to test for flags.
 
-    .PARAMETER Flag
+    .PARAMETER Expected
         The flag(s) to test for.
 
     .INPUTS
@@ -22,7 +22,7 @@
         Returns $true if the flag is set, $false otherwise.
 
     .EXAMPLE
-        Test-BitwiseFlagSet -Value 7 -Flag 4
+        Test-BitwiseFlagSet -Value 7 -Expected 4
 
         Returns $true because 7 (binary: 111) has the flag 4 (binary: 100) set.
 #>
@@ -38,8 +38,8 @@ function Test-BitwiseFlagSet
 
         [Parameter(Mandatory = $true)]
         [System.Int64]
-        $Flag
+        $Expected
     )
 
-    return ($Value -band $Flag) -eq $Flag
+    return ($Value -band $Expected) -eq $Expected
 }

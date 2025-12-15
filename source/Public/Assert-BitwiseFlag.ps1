@@ -8,7 +8,7 @@
         scenarios to verify enum flags, permission masks, file attributes,
         and other bitwise operations.
 
-    .PARAMETER Flag
+    .PARAMETER Expected
         The bitwise flag(s) to assert are set on the value. Can be an integer
         or an enum value.
 
@@ -45,31 +45,31 @@
         This command does not return any output on success.
 
     .EXAMPLE
-        Assert-BitwiseFlag -Actual 7 -Flag 4
+        Assert-BitwiseFlag -Actual 7 -Expected 4
 
         This example asserts that the value 7 (binary: 111) has the flag 4
         (binary: 100) set. This will pass because 7 -band 4 equals 4.
 
     .EXAMPLE
-        $fileAttributes | Assert-BitwiseFlag -Flag [System.IO.FileAttributes]::ReadOnly
+        $fileAttributes | Assert-BitwiseFlag -Expected [System.IO.FileAttributes]::ReadOnly
 
         This example demonstrates pipeline usage with enum flags. The file
         attributes value is checked for the ReadOnly flag.
 
     .EXAMPLE
-        Assert-BitwiseFlag -Actual $permissions -Flag 0x04 -Because 'execute permission should be set'
+        Assert-BitwiseFlag -Actual $permissions -Expected 0x04 -Because 'execute permission should be set'
 
         This example asserts that the permissions value has the execute bit
         (0x04) set, providing a reason for the assertion.
 
     .EXAMPLE
-        @(7, 15, 23) | Assert-BitwiseFlag -Flag 4 -Each -All
+        @(7, 15, 23) | Assert-BitwiseFlag -Expected 4 -Each -All
 
         This example asserts that all values in the array have the flag 4 set.
         The `-Each -All` combination checks every element.
 
     .EXAMPLE
-        @(1, 7, 3) | Assert-BitwiseFlag -Flag 4 -Each -Any
+        @(1, 7, 3) | Assert-BitwiseFlag -Expected 4 -Each -Any
 
         This example asserts that at least one value in the array has the flag 4
         set. This will pass because 7 has the flag 4 set.
@@ -89,7 +89,7 @@ function Assert-BitwiseFlag
         [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'EachAll')]
         [Parameter(Position = 0, Mandatory = $true, ParameterSetName = 'EachAny')]
         [System.Object]
-        $Flag,
+        $Expected,
 
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'Default')]
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'EachDefault')]
@@ -128,20 +128,23 @@ function Assert-BitwiseFlag
         $Actual = $processedInput
     }
 
-    # Validate and convert flag to integer for bitwise operations
-    $flagValue = ConvertTo-BitwiseFlagValue -Value $Flag -ParameterName 'Flag' -Because $Because -InvocationInfo $MyInvocation
+    # Validate flag for bitwise operations
+    Assert-BitwiseType -Value $Expected -ParameterName $script:localizedData.Common_WordExpected -Because $Because -InvocationInfo $MyInvocation
 
     # If Each is specified and we have an array, iterate through each element
     if ($Each.IsPresent -and $Actual -is [System.Array] -and $Actual.Count -gt 0)
     {
         # Default to -All if neither -All nor -Any is specified
         $useAny = $Any.IsPresent
+        $useAll = $All.IsPresent -or -not $Any.IsPresent
         $anyFound = $false
 
         foreach ($currentValue in $Actual)
         {
-            $actualIntValue = ConvertTo-BitwiseFlagValue -Value $currentValue -ParameterName 'Actual' -Because $Because -InvocationInfo $MyInvocation
-            $hasFlagSet = Test-BitwiseFlagSet -Value $actualIntValue -Flag $flagValue
+            # Validate current value for bitwise operations
+            Assert-BitwiseType -Value $currentValue -ParameterName $script:localizedData.Common_WordActual -Because $Because -InvocationInfo $MyInvocation
+
+            $hasFlagSet = Test-BitwiseFlagSet -Value $currentValue -Expected $Expected
 
             if ($useAny)
             {
@@ -152,12 +155,12 @@ function Assert-BitwiseFlag
                     break
                 }
             }
-            else
+            elseif ($useAll)
             {
                 # For -All (default), all must match
                 if (-not $hasFlagSet)
                 {
-                    $message = $script:localizedData.Assert_BitwiseFlag_FlagNotSet -f $Flag, $currentValue
+                    $message = $script:localizedData.Assert_BitwiseFlag_FlagNotSet -f $Expected, $currentValue
 
                     throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
                 }
@@ -167,7 +170,7 @@ function Assert-BitwiseFlag
         # If using -Any and no match was found, throw error
         if ($useAny -and -not $anyFound)
         {
-            $message = $script:localizedData.Assert_BitwiseFlag_NoElementHasFlag -f $Flag
+            $message = $script:localizedData.Assert_BitwiseFlag_NoElementHasFlag -f $Expected
 
             throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }
@@ -175,12 +178,13 @@ function Assert-BitwiseFlag
     else
     {
         # Single value case (not an array or empty array)
-        $actualIntValue = ConvertTo-BitwiseFlagValue -Value $Actual -ParameterName 'Actual' -Because $Because -InvocationInfo $MyInvocation
-        $hasFlagSet = Test-BitwiseFlagSet -Value $actualIntValue -Flag $flagValue
+        Assert-BitwiseType -Value $Actual -ParameterName $script:localizedData.Common_WordActual -Because $Because -InvocationInfo $MyInvocation
+
+        $hasFlagSet = Test-BitwiseFlagSet -Value $Actual -Expected $Expected
 
         if (-not $hasFlagSet)
         {
-            $message = $script:localizedData.Assert_BitwiseFlag_FlagNotSet -f $Flag, $Actual
+            $message = $script:localizedData.Assert_BitwiseFlag_FlagNotSet -f $Expected, $Actual
 
             throw (New-AssertionError -Message $message -Because $Because -InvocationInfo $MyInvocation)
         }

@@ -46,7 +46,7 @@ Describe 'Test-BitwiseFlagSet' {
     Context 'When flag is set' {
         It 'Should return $true for single flag' {
             InModuleScope -ScriptBlock {
-                $result = Test-BitwiseFlagSet -Value 7 -Flag 4
+                $result = Test-BitwiseFlagSet -Value 7 -Expected 4
 
                 $result | Should -BeTrue
             }
@@ -54,7 +54,7 @@ Describe 'Test-BitwiseFlagSet' {
 
         It 'Should return $true for multiple flags' {
             InModuleScope -ScriptBlock {
-                $result = Test-BitwiseFlagSet -Value 15 -Flag 5
+                $result = Test-BitwiseFlagSet -Value 15 -Expected 5
 
                 $result | Should -BeTrue
             }
@@ -62,7 +62,7 @@ Describe 'Test-BitwiseFlagSet' {
 
         It 'Should return $true with all bits matching' {
             InModuleScope -ScriptBlock {
-                $result = Test-BitwiseFlagSet -Value 7 -Flag 7
+                $result = Test-BitwiseFlagSet -Value 7 -Expected 7
 
                 $result | Should -BeTrue
             }
@@ -72,7 +72,7 @@ Describe 'Test-BitwiseFlagSet' {
     Context 'When flag is not set' {
         It 'Should return $false with flag not present' {
             InModuleScope -ScriptBlock {
-                $result = Test-BitwiseFlagSet -Value 3 -Flag 4
+                $result = Test-BitwiseFlagSet -Value 3 -Expected 4
 
                 $result | Should -BeFalse
             }
@@ -80,7 +80,7 @@ Describe 'Test-BitwiseFlagSet' {
 
         It 'Should return $false with only partial match' {
             InModuleScope -ScriptBlock {
-                $result = Test-BitwiseFlagSet -Value 5 -Flag 7
+                $result = Test-BitwiseFlagSet -Value 5 -Expected 7
 
                 $result | Should -BeFalse
             }
@@ -88,7 +88,7 @@ Describe 'Test-BitwiseFlagSet' {
 
         It 'Should return $false for zero value' {
             InModuleScope -ScriptBlock {
-                $result = Test-BitwiseFlagSet -Value 0 -Flag 1
+                $result = Test-BitwiseFlagSet -Value 0 -Expected 1
 
                 $result | Should -BeFalse
             }
@@ -101,7 +101,7 @@ Describe 'Test-BitwiseFlagSet' {
                 $largeValue = [Int64]::MaxValue
                 $flag = 1
 
-                $result = Test-BitwiseFlagSet -Value $largeValue -Flag $flag
+                $result = Test-BitwiseFlagSet -Value $largeValue -Expected $flag
 
                 $result | Should -BeTrue
             }
