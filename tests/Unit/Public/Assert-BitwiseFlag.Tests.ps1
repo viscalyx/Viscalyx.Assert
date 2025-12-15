@@ -366,7 +366,7 @@ Describe 'Assert-BitwiseFlag' {
 
                     # Simulate what Assert-BitwiseFlag does
                     $processedInput = Get-ProcessedPipelineInput -InvocationInfo $MyInvocation
-                    
+
                     if ($null -ne $processedInput) {
                         # This line mirrors what Assert-BitwiseFlag does
                         $testValue = $processedInput
