@@ -64,8 +64,8 @@ applyTo: "{**/*.ps1,**/*.psm1,**/*.psd1}"
 - Comment-based help: SYNOPSIS, DESCRIPTION (40+ chars), PARAMETER, EXAMPLE sections before function/class
 - Comment-based help indentation: keywords 4 spaces, text 8 spaces
 - Include examples for all parameter sets and combinations
-- INPUTS: List each pipeline‑accepted type (one per line) with a 1‑line description. Repeat keyword for each input type.
-- OUTPUTS: List each return type (one per line) with a 1‑line description. Repeat keyword for each output type. Must match both `[OutputType()]` and actual returns.
+- INPUTS: List each pipeline‑accepted type as inline code with a 1‑line description. Repeat keyword for each input type. If there are no inputs, specify `None.`.
+- OUTPUTS: List each return type as inline code with a 1‑line description. Repeat keyword for each output type. Must match both `[OutputType()]` and actual returns. If there are no outputs, specify `None.`.
 - .NOTES: Include only if it conveys critical info (constraints, side effects, security, version compatibility, breaking behavior). Keep to ≤2 short sentences.
 
 ## Functions
@@ -188,7 +188,7 @@ function Get-Something
 - Parameter type on line above parameter name
 - Parameters separated by blank line
 - Parameters should use full type name.
-- Pipeline parameters (`ValueFromPipeline = $true`) must be declared in ALL parameter sets
+- `ValueFromPipeline` must be consistent across all parameter sets declarations for the same parameter
 
 ## Best Practices
 
