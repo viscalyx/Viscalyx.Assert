@@ -120,13 +120,7 @@ Describe 'Assert-BitwiseType' {
     Context 'When using -Because parameter' {
         It 'Should include reason in error message' {
             InModuleScope -ScriptBlock {
-                $mockInvocation = @{
-                    MyCommand = @{ Name = 'Test-Command' }
-                    ScriptLineNumber = 1
-                    ScriptName = 'TestScript.ps1'
-                }
-
-                { Assert-BitwiseType -Value 'invalid' -ParameterName 'TestParam' -Because 'testing error message' -InvocationInfo $mockInvocation } |
+                { Assert-BitwiseType -Value 'invalid' -ParameterName 'TestParam' -Because 'testing error message' -InvocationInfo $MyInvocation } |
                     Should -Throw -ExpectedMessage '*because testing error message*'
             }
         }

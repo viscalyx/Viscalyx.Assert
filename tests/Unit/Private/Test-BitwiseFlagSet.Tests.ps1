@@ -107,4 +107,37 @@ Describe 'Test-BitwiseFlagSet' {
             }
         }
     }
+
+    Context 'When Expected parameter is zero or negative' {
+        It 'Should handle Expected value of 0' {
+            InModuleScope -ScriptBlock {
+                # When Expected is 0, ($Value -band 0) -eq 0 is always true
+                $result = Test-BitwiseFlagSet -Value 5 -Expected 0
+
+                $result | Should -BeTrue
+            }
+        }
+
+        It 'Should handle negative Expected values' {
+            InModuleScope -ScriptBlock {
+                # Test with -1 (all bits set)
+                $result = Test-BitwiseFlagSet -Value 5 -Expected -1
+
+                # 5 -band -1 = 5, and 5 -eq -1 is false
+                $result | Should -BeFalse
+            }
+        }
+
+        It 'Should handle high bit set in Expected (appears as negative)' {
+            InModuleScope -ScriptBlock {
+                # 0x8000000000000000 is -9223372036854775808 in signed Int64
+                $value = [System.Int64]0x8000000000000001
+                $expected = [System.Int64]0x8000000000000000
+
+                $result = Test-BitwiseFlagSet -Value $value -Expected $expected
+
+                $result | Should -BeTrue
+            }
+        }
+    }
 }
