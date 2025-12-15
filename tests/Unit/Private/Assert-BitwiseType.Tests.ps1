@@ -49,9 +49,9 @@ Describe 'Assert-BitwiseType' {
                 # Use actual invocation info from the calling function
                 $mockInvocation = $MyInvocation
 
-                { Assert-BitwiseType -Value 42 -ParameterName 'TestParam' -InvocationInfo $mockInvocation } | Should -Not -Throw
-                { Assert-BitwiseType -Value ([Int64]::MaxValue) -ParameterName 'TestParam' -InvocationInfo $mockInvocation } | Should -Not -Throw
-                { Assert-BitwiseType -Value ([Byte]255) -ParameterName 'TestParam' -InvocationInfo $mockInvocation } | Should -Not -Throw
+                $null = Assert-BitwiseType -Value 42 -ParameterName 'TestParam' -InvocationInfo $mockInvocation
+                $null = Assert-BitwiseType -Value ([Int64]::MaxValue) -ParameterName 'TestParam' -InvocationInfo $mockInvocation
+                $null = Assert-BitwiseType -Value ([Byte]255) -ParameterName 'TestParam' -InvocationInfo $mockInvocation
             }
         }
 
@@ -60,7 +60,7 @@ Describe 'Assert-BitwiseType' {
                 # Use actual invocation info from the calling function
                 $mockInvocation = $MyInvocation
 
-                { Assert-BitwiseType -Value ([System.IO.FileAttributes]::ReadOnly) -ParameterName 'TestParam' -InvocationInfo $mockInvocation } | Should -Not -Throw
+                $null = Assert-BitwiseType -Value ([System.IO.FileAttributes]::ReadOnly) -ParameterName 'TestParam' -InvocationInfo $mockInvocation
             }
         }
     }
