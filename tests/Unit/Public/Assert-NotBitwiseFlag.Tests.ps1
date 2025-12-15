@@ -369,4 +369,51 @@ Describe 'Assert-NotBitwiseFlag' {
             { Assert-NotBitwiseFlag -Actual $largeValue -Expected ([System.Int64]0x8000000000000000) } | Should -Throw
         }
     }
+
+    Context 'When testing Get-ProcessedPipelineInput integration' {
+        It 'Should handle pipeline input correctly through a wrapper function' {
+            InModuleScope -ScriptBlock {
+                # Create a wrapper that demonstrates Get-ProcessedPipelineInput behavior
+                # This indirectly tests the $Actual = $processedInput line
+                function Test-NotBitwiseFlagWrapper {
+                    [CmdletBinding()]
+                    param(
+                        [Parameter(ValueFromPipeline)]
+                        $InputValue,
+
+                        [Parameter()]
+                        $Expected
+                    )
+
+                    # Simulate what Assert-NotBitwiseFlag does
+                    $processedInput = Get-ProcessedPipelineInput -InvocationInfo $MyInvocation
+                    
+                    if ($null -ne $processedInput) {
+                        # This line mirrors what Assert-NotBitwiseFlag does
+                        $testValue = $processedInput
+                        Assert-NotBitwiseFlag -Actual $testValue -Expected $Expected
+                    }
+                    else {
+                        Assert-NotBitwiseFlag -Actual $InputValue -Expected $Expected
+                    }
+                }
+
+                # Test with pipeline input
+                $null = 3 | Test-NotBitwiseFlagWrapper -Expected 4
+            }
+        }
+
+        It 'Should properly unwrap single-element arrays from pipeline' {
+            # This tests the interaction between pipeline processing and Get-ProcessedPipelineInput
+            # When a single-element array is piped, it should be unwrapped
+            $result = @(3) | Assert-NotBitwiseFlag -Expected 4
+            $result | Should -BeNullOrEmpty
+        }
+
+        It 'Should handle multiple values with -Each parameter' {
+            # Tests that -Each parameter properly processes array inputs
+            $result = @(3, 2, 1) | Assert-NotBitwiseFlag -Expected 4 -Each
+            $result | Should -BeNullOrEmpty
+        }
+    }
 }

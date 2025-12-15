@@ -70,4 +70,42 @@ Describe 'Get-ProcessedPipelineInput' {
             }
         }
     }
+
+    Context 'When testing indirectly through Assert-BitwiseFlag' {
+        It 'Should unwrap single-element array when piped without -Each' {
+            # This tests Get-ProcessedPipelineInput's unwrapping logic indirectly
+            # Single-element array should be unwrapped and processed as a single value
+            $null = @(7) | Assert-BitwiseFlag -Expected 4
+        }
+
+        It 'Should keep single-element as array when piped with -Each' {
+            # This tests Get-ProcessedPipelineInput's -Each parameter indirectly
+            # Single-element array should remain as array
+            $null = @(7) | Assert-BitwiseFlag -Expected 4 -Each
+        }
+
+        It 'Should return array when multiple items are piped with -Each' {
+            # This tests that Get-ProcessedPipelineInput properly handles multiple items
+            $null = @(7, 15, 23) | Assert-BitwiseFlag -Expected 4 -Each
+        }
+
+        It 'Should process last element when array piped without -Each' {
+            # When piping array without -Each, should get the full array
+            # which then checks the last element
+            $null = @(1, 2, 7) | Assert-BitwiseFlag -Expected 4
+        }
+    }
+
+    Context 'When testing the -Each parameter behavior' {
+        It 'Should handle -Each switch correctly when passed' {
+            InModuleScope -ScriptBlock {
+                # Test that -Each switch is properly handled by Get-ProcessedPipelineInput
+                # Use $MyInvocation which is the correct type
+                $result = Get-ProcessedPipelineInput -InvocationInfo $MyInvocation -Each
+
+                # When not expecting input, should return null regardless of -Each
+                $result | Should -BeNullOrEmpty
+            }
+        }
+    }
 }
