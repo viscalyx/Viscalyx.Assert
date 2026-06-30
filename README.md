@@ -1,6 +1,8 @@
 # Viscalyx.Assert
 
-Assertions for Pester that can improve your tests. All commands has `Should-*` aliases. These are primarily meant to be used in Pester tests, but the commands can be used standalone too.
+Assertions for _Pester_ that can improve your tests. All commands have `Should-*`
+aliases. These are primarily meant to be used in _Pester_ tests, but the commands
+can be used standalone too.
 
 [![Build Status](https://dev.azure.com/viscalyx/Viscalyx.Assert/_apis/build/status/viscalyx.Viscalyx.Assert?branchName=main)](https://dev.azure.com/viscalyx/Viscalyx.Assert/_build/latest?definitionId=35&branchName=main)
 ![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/viscalyx/Viscalyx.Assert/35/main)
