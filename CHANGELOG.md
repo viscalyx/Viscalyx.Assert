@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bump GitHub action checkout to v7
 - Fix project description in README.md.
+- Bump action Stale to v11
 
 ## [1.2.1] - 2025-12-15
 
